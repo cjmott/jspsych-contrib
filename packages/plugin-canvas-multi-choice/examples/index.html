@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>jsPsychPluginCanvasMultiChoice Example</title>
+    <script src="https://unpkg.com/jspsych"></script>
+    <!-- Once this plugin package is published, it can be loaded via
+<script src="https://unpkg.com/@jspsych-contrib/plugin-canvas-multi-choice"></script>
+<script src="../dist/index.browser.js"></script> -->
+    <script src="../dist/index.browser.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css" />
+  </head>
+
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych();
+
+    const trial = {
+      type: jsPsychPluginCanvasMultiChoice,
+      stimulus: function(c) {
+					const ctx = c.getContext('2d');
+    
+          // Set the fill color to red
+          ctx.fillStyle = 'red';
+          
+          // Draw a square (x, y, width, height)
+          // This draws a 100x100 pixel square at position (50, 50)
+          ctx.fillRect(50, 50, 100, 100);
+				},
+				canvas_size: [250, 250],
+				preamble: `<p>Please view then animation then answer the questions below</p>`,
+				questions: [
+                    {
+                        prompt: "What is your answer?", 
+                        name: 'yesno', 
+                        options: ['Yes', 'No'], 
+                        required: false
+                    }
+                ],
+    };
+
+    jsPsych.run([trial])
+  </script>
+</html>
