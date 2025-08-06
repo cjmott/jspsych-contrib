@@ -1,8 +1,6 @@
-//import { OrbitControls } from "three/addons/controls/OrbitControls.js"; FIX
-import { World } from "/js/World.js";
 import { JsPsych, JsPsychPlugin, ParameterType, TrialType } from "jspsych";
-import { Euler, Matrix4, Vector3 } from "three";
 
+import { World } from "../js/World.js";
 import { version } from "../package.json";
 
 const info = <const>{
