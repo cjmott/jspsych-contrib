@@ -110,7 +110,10 @@ const info = <const>{
       type: ParameterType.BOOL,
       default: false,
     },
-    include_questions: false,
+    include_questions: {
+      type: ParameterType.BOOL,
+      default: false,
+    },
     questions: {
       type: ParameterType.COMPLEX,
       array: true,

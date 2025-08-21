@@ -1,3 +1,40 @@
+import { loadScenev2 } from "loadScenev2.js";
+import { loadSidewalkv3 } from "loadSidewalkv3.js";
+// Import packages
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { compareArrays2d, convertPosition, indexOf2d } from "utils.js";
+
+// Alphabet array (will use later)
+const alpha = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+  "Q",
+  "R",
+  "S",
+  "T",
+  "U",
+  "V",
+  "W",
+  "X",
+  "Y",
+  "Z",
+];
+
 export async function World(
   array_list,
   array_map,
@@ -7,36 +44,6 @@ export async function World(
   camera_controls = true,
   c
 ) {
-  // Alphabet array (will use later)
-  const alpha = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y",
-    "Z",
-  ];
-
   // ThreeJS
   let camera, renderer, canvas, views, scene, dim;
   let mixers;
