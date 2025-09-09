@@ -90,7 +90,7 @@ const info = <const>{
     canvas_size: {
       type: ParameterType.INT,
       array: true,
-      default: [500, 500],
+      default: [250, 250],
     },
     /** HTML formatted string to display at the top of the page above all the questions. */
     preamble: {
@@ -195,7 +195,7 @@ const plugin_id_name = "jspsych-three-js-animate";
  *
  * @author Christian Mott
  */
-class ThreeJSAnimatePlugin implements JsPsychPlugin<Info> {
+class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
   static info = info;
 
   constructor(private jsPsych: JsPsych) {}
@@ -434,7 +434,7 @@ class ThreeJSAnimatePlugin implements JsPsychPlugin<Info> {
   }
 }
 
-export default ThreeJSAnimatePlugin;
+export default ThreeJsAnimatePlugin;
 
 /* 
 Inputs to function:

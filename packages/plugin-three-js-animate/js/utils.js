@@ -9,7 +9,7 @@ export async function largestObstacle(obstacles) {
   let uwidth = 0;
   let ulength = 0;
 
-  for (ob of obstacles) {
+  for (let ob of obstacles) {
     filename = ob;
     gltf = await gltfloader.loadAsync(filename);
 
@@ -65,6 +65,19 @@ export function indexOf2d(array, item) {
   let j = num - array[0].length * i;
 
   return [i, j];
+}
+
+export function allIndexOf2d(array, item) {
+  let indices = [];
+  let idx = array.flat().indexOf(item);
+  while (idx !== -1) {
+    let i = Math.floor(idx / array[0].length);
+    let j = idx - array[0].length * i;
+    indices.push([i, j]);
+
+    idx = array.flat().indexOf(item, idx + 1);
+  }
+  return indices;
 }
 
 /* Define shuffle function */

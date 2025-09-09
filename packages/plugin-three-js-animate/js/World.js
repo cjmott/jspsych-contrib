@@ -12,7 +12,7 @@ let mixers;
 let animationId;
 let isPlaying, isMoving;
 let timeDelta, clock, startTime, lastTime, thisTime;
-let mouse, raycaster;
+let mouse, raycaster, hoveredButton, mousePos;
 let destinations = [];
 let actions = [
   [1, 0],
@@ -21,6 +21,31 @@ let actions = [
   [0, -1],
 ];
 let pastObject = null;
+
+// Button definitions
+const overlayCanvas = document.createElement("canvas");
+const overlayCtx = overlayCanvas.getContext("2d");
+
+const buttons = [
+  {
+    x: 0,
+    y: 0,
+    width: 40,
+    height: 40,
+    text: () => (isPlaying ? "⏸️" : "▶️"),
+    action: onPlay,
+    color: "#90EE90",
+  },
+  {
+    x: 40,
+    y: 0,
+    width: 40,
+    height: 40,
+    text: () => "🔄",
+    action: onReset,
+    color: "#ADD8E6",
+  },
+];
 
 export async function World(
   array_list,
@@ -43,7 +68,7 @@ export async function World(
   interactions = [];
 
   // Buttons
-  const overlayCanvas = document.createElement("canvas");
+  //const overlayCanvas = document.createElement("canvas");
   overlayCanvas.style.position = c.style.position;
   overlayCanvas.style.top = c.style.top;
   overlayCanvas.style.left = c.style.left;
@@ -53,7 +78,7 @@ export async function World(
   overlayCanvas.height = 40;
   overlayCanvas.style.pointerEvents = "auto";
   overlayCanvas.id = "overlay";
-  const overlayCtx = overlayCanvas.getContext("2d");
+  //const overlayCtx = overlayCanvas.getContext("2d");
   c.parentNode.appendChild(overlayCanvas);
 
   // Renderer
@@ -101,12 +126,16 @@ export async function World(
 
   // Load sidewalk
   let obstacles = array_map.filter((x) => x.entity_type == "obstacle").map((x) => x.model_path);
-  odim = largestObstacle(obstacles);
+  odim = await largestObstacle(obstacles);
+  console.log("ODIM: ", odim);
   await loadSidewalk(scene, sidewalk_type, odim, dim);
 
   // Load scene
   let initial = array_list[0];
   await loadScene(scene, array_map, initial, mixers, odim, dim);
+
+  console.log("SCENE: ", scene);
+  console.log("MIXERS: ", mixers);
 
   // Reduce array list
   let al = shortenArrayList(array_list);
@@ -138,10 +167,16 @@ export async function World(
     paths_m[n] = paths[n].map((node) => convertPosition(node, odim, dim));
   }
 
+  console.log("PATHS_M: ", paths_m);
+
   scene.userData.names = names;
   scene.userData.array_list = al;
 
   scene.traverse((child) => {
+    console.log("CHILD NAME: ", child.name);
+    if (!child.name.includes("sidewalk")) {
+      console.log("CHILD: ", child);
+    }
     if (names.includes(child.name)) {
       child.path = paths[child.name];
       child.path_m = paths_m[child.name];
@@ -161,31 +196,9 @@ export async function World(
     isPlaying = false;
   }, 50);
 
-  // Button definitions
-  const buttons = [
-    {
-      x: 0,
-      y: 0,
-      width: 40,
-      height: 40,
-      text: () => (isPlaying ? "⏸️" : "▶️"),
-      action: onPlay,
-      color: "#90EE90",
-    },
-    {
-      x: 40,
-      y: 0,
-      width: 40,
-      height: 40,
-      text: () => "🔄",
-      action: onReset,
-      color: "#ADD8E6",
-    },
-  ];
-
   // Button interaction state
-  let hoveredButton = null;
-  let mousePos = { x: 0, y: 0 };
+  hoveredButton = null;
+  mousePos = { x: 0, y: 0 };
 
   // Mouse event handlers
   overlayCanvas.addEventListener("mousemove", (event) => {
@@ -204,7 +217,7 @@ export async function World(
     if (newHoveredButton !== hoveredButton) {
       hoveredButton = newHoveredButton;
       overlayCanvas.style.cursor = hoveredButton !== null ? "pointer" : "default";
-      drawButtons();
+      drawButtons(overlayCanvas, overlayCtx);
     }
   });
 
@@ -216,7 +229,7 @@ export async function World(
     buttons.forEach((button) => {
       if (isPointInButton(x, y, button)) {
         button.action();
-        drawButtons(); // Redraw to update button text
+        drawButtons(overlayCanvas, overlayCtx); // Redraw to update button text
       }
     });
   });
@@ -224,7 +237,7 @@ export async function World(
   overlayCanvas.addEventListener("mouseleave", () => {
     hoveredButton = null;
     overlayCanvas.style.cursor = "default";
-    drawButtons();
+    drawButtons(overlayCanvas, overlayCtx);
   });
 
   // Draw buttons
@@ -239,8 +252,8 @@ function drawButtons(canvas, canvas_2d) {
     const isHovered = hoveredButton === index;
 
     // Button background
-    overlayCtx.fillStyle = button.color;
-    overlayCtx.globalAlpha = isHovered ? 0.9 : 0.7;
+    canvas_2d.fillStyle = button.color;
+    canvas_2d.globalAlpha = isHovered ? 0.9 : 0.7;
 
     // Rounded rectangle
     const radius = 8;
@@ -294,9 +307,9 @@ function onReset() {
   if (isPlaying == false || isMoving == false) {
     onPlay();
   }
-  let letters = scene.userData.letters;
+  let names = scene.userData.names;
   scene.traverse((child) => {
-    if (letters.includes(child.name)) {
+    if (names.includes(child.name)) {
       child.path_m = child.path.map((node) => convertPosition(node, odim, dim));
       child.node = 0;
       let position = child.path_m[child.node];
@@ -529,10 +542,10 @@ function render() {
       thisTime = performance.now();
       lastTime = thisTime;
 
-      let letters = scene.userData.letters;
+      let names = scene.userData.names;
 
-      for (let letter of letters) {
-        advanceCharacter(scene, letter, timeDelta);
+      for (let name of names) {
+        advanceCharacter(scene, name, timeDelta);
       }
     }
 

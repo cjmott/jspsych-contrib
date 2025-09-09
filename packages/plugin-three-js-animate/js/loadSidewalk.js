@@ -19,6 +19,7 @@ export async function loadSidewalk(scene, sidewalk_type = "checker", odim, wdim)
 
   let uwidth = odim[0];
   let ulength = odim[1];
+  console.log("Sidewalk width, length: ", uwidth, ulength);
 
   // Loop
   for (let i = 0; i < wdim[0]; i++) {

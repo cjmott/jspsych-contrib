@@ -17,6 +17,7 @@
 		let interactions = [];
 
     // Load arrays
+    /*
     const files = ["negligent.json"];
 
     async function fetchArrays(list) {
@@ -33,13 +34,1025 @@
     }
 
     let array_lists = fetchArrays(files);
-    console.log(array_lists);
+    console.log(array_lists); */
+
+    let json = {
+    "0": {
+        "t": 0,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                3,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                2
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 4,
+            "B": 4
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "1": {
+        "t": 1,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                3,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 4,
+            "B": 4
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "2": {
+        "t": 2,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0
+            ],
+            [
+                3,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 2,
+            "B": 4
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "3": {
+        "t": 3,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0
+            ],
+            [
+                0,
+                3,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 2,
+            "B": 1
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "4": {
+        "t": 4,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                3,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 2,
+            "B": 1
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "5": {
+        "t": 5,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                3,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 2,
+            "B": 1
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "6": {
+        "t": 6,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                3,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 2,
+            "B": 1
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "7": {
+        "t": 7,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                2,
+                0,
+                3,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 4,
+            "B": 1
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "8": {
+        "t": 8,
+        "agent_names": [
+            "A",
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent",
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                2,
+                0,
+                0,
+                3,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 2,
+            "B": 1
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 0,
+            "B": 0
+        }
+    },
+    "9": {
+        "t": 9,
+        "agent_names": [
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                3,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "A": 2,
+            "B": 3
+        },
+        "rewards": {
+            "A": 0,
+            "B": 0
+        },
+        "terminations": {
+            "A": 1,
+            "B": 0
+        }
+    },
+    "10": {
+        "t": 10,
+        "agent_names": [
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                3,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "B": 1
+        },
+        "rewards": {
+            "B": 0
+        },
+        "terminations": {
+            "B": 0
+        }
+    },
+    "11": {
+        "t": 11,
+        "agent_names": [
+            "B"
+        ],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [
+            "negligent"
+        ],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                3,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "B": 1
+        },
+        "rewards": {
+            "B": 0
+        },
+        "terminations": {
+            "B": 0
+        }
+    },
+    "12": {
+        "t": 12,
+        "agent_names": [],
+        "agent_name_mapping": {
+            "A": 2,
+            "B": 3
+        },
+        "reward_functions": [],
+        "grid_agent": [
+            [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            [
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1,
+                1,
+                0
+            ],
+            [
+                0,
+                0,
+                0,
+                1,
+                0,
+                1,
+                0,
+                0
+            ]
+        ],
+        "actions": {
+            "B": 1
+        },
+        "rewards": {
+            "B": 0
+        },
+        "terminations": {
+            "B": 1
+        }
+    }
+};
+    let array = Object.keys(json).map( (key) => json[key]["grid_agent"]);  
+
+    let array_lists = [array];
 
     const jsPsych = initJsPsych();
     console.log(jsPsych);
 
     const trial = {
-      type: jsPsychThreeJSAnimate,
+      type: jsPsychPluginThreeJsAnimate,
       array_list: array_lists[0],
       array_map: [
         {
@@ -52,17 +1065,24 @@
           number: 2,
           entity_type: "agent",
           name: "A",
-          model_path: "assets/man.glb"
+          model_path: "assets/man_basic.glb"
         },
         {
           number: 3,
           entity_type: "agent",
           name: "B",
-          model_path: "assets/man.glb"
+          model_path: "assets/man_basic.glb"
         }
       ],
       sidewalk_type: "checker",
       trial_type: "interactive",
+      questions: [
+        {
+          name: "dummy",
+          options:["Dummy"],
+          prompt: "Dummy question"
+        }
+      ]
     };
 
     jsPsych.run([trial])
