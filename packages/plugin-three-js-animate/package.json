@@ -40,11 +40,12 @@
   },
   "homepage": "https://github.com/jspsych/jspsych-contrib/packages/plugin-three-js-animate/README.md",
   "dependencies": {
-    "jspsych": "^8.0.0",
     "@citation-js/core": "^0.7.14",
-    "@citation-js/plugin-software-formats": "^0.6.1",
     "@citation-js/plugin-bibtex": "^0.7.14",
-    "@citation-js/plugin-cff": "^0.6.1"
+    "@citation-js/plugin-cff": "^0.6.1",
+    "@citation-js/plugin-software-formats": "^0.6.1",
+    "jspsych": "^8.0.0",
+    "three": "^0.180.0"
   },
   "devDependencies": {
     "@jspsych/config": "^3.2.2",

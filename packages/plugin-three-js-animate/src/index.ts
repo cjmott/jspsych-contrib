@@ -66,7 +66,7 @@ const info = <const>{
       },
     },
     /* Color (in RGB) for sidewalk or path to texture */
-    sidewalk: {
+    sidewalk_type: {
       type: ParameterType.STRING,
       default: undefined,
     },
@@ -314,7 +314,7 @@ class ThreeJSAnimatePlugin implements JsPsychPlugin<Info> {
     World(
       trial.array_list,
       trial.array_map,
-      trial.sidewalk,
+      trial.sidewalk_type,
       trial.trial_type,
       trial.animation_controls,
       trial.camera_controls,
@@ -442,7 +442,7 @@ Inputs to function:
 array_list (list of arrays of world stages)
 array_map (giving model paths for all obstacles and agents)
 {number: from arrays,
-entity_type: ground, obstacle, agent;
+entity_type: obstacle, agent;
 name: for calling,
 model_path: for loading
 idle: 'idle',

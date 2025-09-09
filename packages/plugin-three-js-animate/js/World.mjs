@@ -1,10 +1,9 @@
+// Import functions
+import { loadScene } from "loadScene.js";
+import { loadSidewalk } from "loadSidewalk.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-
-// Import functions
-import { loadScene } from "./loadScene.js";
-import { loadSidewalk } from "./loadSidewalk.js";
-import { compareArrays2d, convertPosition, indexOf2d, largestObstacle } from "./utils.js";
+import { compareArrays2d, convertPosition, indexOf2d, largestObstacle } from "utils.js";
 
 // ThreeJS
 let camera, renderer, scene, dim, odim;

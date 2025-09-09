@@ -1,39 +1,52 @@
-export function convertPosition(indices, object, dim) {
-  /*
-    if (object == "bush") {
-        let ws = [-1, 0.45, 1.9];
-        let ls = [-6, -4, -2, 0, 2, 4, 6];
-        let position = [ws[indices[0]], ls[indices[1]]];
-        return(position)
-    }
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-    if (object == "agent") {
-        let ws = [-1.5, 0, 1.5];
-        let ls = [-6.24, -4.16, -2.08, 0, 2.08, 4.16, 6.24];
-        let position = [ws[indices[0]], ls[indices[1]]];
-        return(position)
-    }
-    */
-  //console.log(indices);
-  let bwidth = 1.5915793398780806;
-  let blength = 2.022771790592742;
+export async function largestObstacle(obstacles) {
+  //const gltfloader = new GLTFLoader().setPath("assets/");
+  const gltfloader = new GLTFLoader();
+
+  // Load obstacle model to get dimensions
+  let filename, gltf;
+  let uwidth = 0;
+  let ulength = 0;
+
+  for (ob of obstacles) {
+    filename = ob;
+    gltf = await gltfloader.loadAsync(filename);
+
+    gltf.scene.traverse((child) => {
+      if (child.geometry != null) {
+        let x =
+          child.scale.x *
+          Math.abs(child.geometry.boundingBox.max.x - child.geometry.boundingBox.min.x);
+        let z =
+          child.scale.z *
+          Math.abs(child.geometry.boundingBox.max.z - child.geometry.boundingBox.min.z);
+        if (x > uwidth) uwidth = x;
+        if (z > ulength) ulength = z;
+      }
+    });
+  }
+
+  return [uwidth, ulength];
+}
+
+export function convertPosition(indices, odim, wdim) {
+  //let bwidth = 1.5915793398780806;
+  //let blength = 2.022771790592742;
+  let bwidth = odim[0];
+  let blength = odim[1];
 
   let ws = [];
   let ls = [];
   let fw, fl;
 
-  if (object == "NULL") {
-    fw = (bwidth * dim[0]) / 2 - bwidth / 1.25;
-    fl = (blength * dim[1]) / 2 - blength / 2;
-  } else {
-    fw = (bwidth * dim[0]) / 2 - bwidth / 2;
-    fl = (blength * dim[1]) / 2 - blength / 2;
-  }
+  fw = (bwidth * wdim[0]) / 2 - bwidth / 2;
+  fl = (blength * wdim[1]) / 2 - blength / 2;
 
-  for (let i = 0; i < dim[0]; i++) {
+  for (let i = 0; i < wdim[0]; i++) {
     ws.push(bwidth * i - fw);
   }
-  for (let j = 0; j < dim[1]; j++) {
+  for (let j = 0; j < wdim[1]; j++) {
     ls.push(blength * j - fl);
   }
 

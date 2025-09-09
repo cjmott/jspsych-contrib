@@ -1,21 +1,68 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>jsPsychPluginThreeJsAnimate Example</title>
+    <title>jsPsychPluginThreeJSAnimate Example</title>
     <script src="https://unpkg.com/jspsych"></script>
     <!-- Once this plugin package is published, it can be loaded via
 <script src="https://unpkg.com/@jspsych-contrib/plugin-three-js-animate"></script>
 <script src="../dist/index.browser.js"></script> -->
-    <script src="../dist/index.global.js"></script>
+    <script src="../dist/index.browser.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css" />
   </head>
 
   <body></body>
   <script>
+
+    // Declare variable
+		let interactions = [];
+
+    // Load arrays
+    const files = ["negligent.json"];
+
+    async function fetchArrays(list) {
+      let array_lists = [];
+      for ( let i = 0; i < files.length; i ++ ) {
+          let file = "scenarios/" + files[i];
+          console.log(file);
+          const response = await fetch(file);
+          const json = await response.json();
+          let array_list = Object.keys(json).map( (key) => json[key]["grid_agent"]);      
+              array_lists.push(array_list);
+      }
+      return(array_lists)
+    }
+
+    let array_lists = fetchArrays(files);
+    console.log(array_lists);
+
     const jsPsych = initJsPsych();
+    console.log(jsPsych);
 
     const trial = {
-      type: jsPsychPluginThreeJsAnimate
+      type: jsPsychThreeJSAnimate,
+      array_list: array_lists[0],
+      array_map: [
+        {
+          number: 1,
+          entity_type: "obstacle",
+          name: "bush",
+          model_path: "assets/bush.glb"
+        },
+        {
+          number: 2,
+          entity_type: "agent",
+          name: "A",
+          model_path: "assets/man.glb"
+        },
+        {
+          number: 3,
+          entity_type: "agent",
+          name: "B",
+          model_path: "assets/man.glb"
+        }
+      ],
+      sidewalk_type: "checker",
+      trial_type: "interactive",
     };
 
     jsPsych.run([trial])
