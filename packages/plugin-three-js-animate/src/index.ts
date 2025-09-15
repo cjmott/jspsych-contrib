@@ -1,6 +1,6 @@
 import { JsPsych, JsPsychPlugin, ParameterType, TrialType } from "jspsych";
 
-import { World } from "../js/World.js";
+import { World, endWorld } from "../js/World.js";
 import { version } from "../package.json";
 
 const info = <const>{
@@ -75,6 +75,25 @@ const info = <const>{
       type: ParameterType.STRING,
       default: undefined,
     },
+    interaction_info: {
+      type: ParameterType.COMPLEX,
+      nested: {
+        /** Which character is controlled */
+        control_character: {
+          type: ParameterType.STRING,
+          default: "A",
+        },
+        /** How many moves */
+        moves: {
+          type: ParameterType.INT,
+          default: 1,
+        },
+      },
+      default: {
+        control_character: "A",
+        moves: 1,
+      },
+    },
     /**  What animation controls to include: pause, reset, all
      * (will always include play */
     animation_controls: {
@@ -145,6 +164,13 @@ const info = <const>{
           default: "",
         },
       },
+      default: [
+        {
+          name: "dummy",
+          prompt: "dummy",
+          options: ["dummy"],
+        },
+      ],
     },
     /**
      * If true, the display order of `questions` is randomly determined at the start of the trial. In the data object,
@@ -316,12 +342,13 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
       trial.array_map,
       trial.sidewalk_type,
       trial.trial_type,
+      trial.interaction_info,
       trial.animation_controls,
       trial.camera_controls,
       c
     );
 
-    //
+    // Submit
     const trial_form = display_element.querySelector<HTMLFormElement>(`#${trial_form_id}`);
 
     trial_form.addEventListener("submit", (event) => {
@@ -332,22 +359,26 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
 
       // create object to hold responses
       var question_data = {};
-      for (var i = 0; i < trial.questions.length; i++) {
-        var match = display_element.querySelector(`#${plugin_id_name}-${i}`);
-        var id = "Q" + i;
-        var val: String;
-        if (match.querySelector("input[type=radio]:checked") !== null) {
-          val = match.querySelector<HTMLInputElement>("input[type=radio]:checked").value;
-        } else {
-          val = "";
+
+      // If there are questions, store them
+      if (trial.include_questions) {
+        for (var i = 0; i < trial.questions.length; i++) {
+          var match = display_element.querySelector(`#${plugin_id_name}-${i}`);
+          var id = "Q" + i;
+          var val: String;
+          if (match.querySelector("input[type=radio]:checked") !== null) {
+            val = match.querySelector<HTMLInputElement>("input[type=radio]:checked").value;
+          } else {
+            val = "";
+          }
+          var obje = {};
+          var name = id;
+          if (match.attributes["data-name"].value !== "") {
+            name = match.attributes["data-name"].value;
+          }
+          obje[name] = val;
+          Object.assign(question_data, obje);
         }
-        var obje = {};
-        var name = id;
-        if (match.attributes["data-name"].value !== "") {
-          name = match.attributes["data-name"].value;
-        }
-        obje[name] = val;
-        Object.assign(question_data, obje);
       }
       // save data
       var trial_data = {
@@ -355,6 +386,9 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
         response: question_data,
         question_order: question_order,
       };
+
+      // end world
+      endWorld();
 
       // next trial
       this.jsPsych.finishTrial(trial_data);
@@ -452,4 +486,13 @@ sidewalk: color or file path,
 trial_type: animate or interactive
 animation_controls: ["pause", "reset", "all"],
 camera_controls: true
+*/
+
+/*
+TO DO:
+- Submit button does not work, so cannot continue to next trial or end DONE
+- Only control character A. Allow users to specify which characters are 
+controllable and the order in which they move.
+- Make non-interactive work with no buttons
+- Implement slider question in addition to multiple choice
 */

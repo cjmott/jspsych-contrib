@@ -12,7 +12,7 @@ let mixers;
 let animationId;
 let isPlaying, isMoving;
 let timeDelta, clock, startTime, lastTime, thisTime;
-let mouse, raycaster, hoveredButton, mousePos;
+let mouse, raycaster, hoveredButton, mousePos, interactions;
 let destinations = [];
 let actions = [
   [1, 0],
@@ -23,8 +23,8 @@ let actions = [
 let pastObject = null;
 
 // Button definitions
-const overlayCanvas = document.createElement("canvas");
-const overlayCtx = overlayCanvas.getContext("2d");
+let overlayCanvas = document.createElement("canvas");
+let overlayCtx = overlayCanvas.getContext("2d");
 
 const buttons = [
   {
@@ -52,6 +52,7 @@ export async function World(
   array_map,
   sidewalk_type,
   trial_type,
+  interaction_info,
   animation_controls = "all",
   camera_controls = true,
   c
@@ -77,6 +78,7 @@ export async function World(
   overlayCanvas.width = 300;
   overlayCanvas.height = 40;
   overlayCanvas.style.pointerEvents = "auto";
+  overlayCanvas.style.display = "block";
   overlayCanvas.id = "overlay";
   //const overlayCtx = overlayCanvas.getContext("2d");
   c.parentNode.appendChild(overlayCanvas);
@@ -87,7 +89,7 @@ export async function World(
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
 
-  // Add event listeners
+  // Add event listeners for interaction
   if (trial_type == "interactive") {
     renderer.domElement.addEventListener("click", inClick, false);
     renderer.domElement.addEventListener("mousemove", mouseHighlight);
@@ -97,22 +99,27 @@ export async function World(
   scene = new THREE.Scene();
   scene.name = "scene";
 
+  // For interacive
+  scene.userData.control_character = interaction_info.control_character;
+  scene.userData.total_moves = interaction_info.moves;
+  scene.userData.moves = 0;
+
   // Camera
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 10, 20);
   scene.userData.camera = camera;
 
   // light
-  const light = new THREE.AmbientLight(0x404040, 20); // soft white light
+  let light = new THREE.AmbientLight(0x404040, 20); // soft white light
   scene.add(light);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
+  let directionalLight = new THREE.DirectionalLight(0xffffff, 5);
   directionalLight.position.set(5, 10, 7.5);
   scene.add(directionalLight);
 
   // Set camera controls
   if (camera_controls) {
-    const controls = new OrbitControls(camera, renderer.domElement);
+    let controls = new OrbitControls(camera, renderer.domElement);
     controls.minDistance = 2;
     controls.maxDistance = 60;
     controls.target.set(0, 0, 0);
@@ -127,18 +134,15 @@ export async function World(
   // Load sidewalk
   let obstacles = array_map.filter((x) => x.entity_type == "obstacle").map((x) => x.model_path);
   odim = await largestObstacle(obstacles);
-  console.log("ODIM: ", odim);
+  //console.log("ODIM: ", odim);
   await loadSidewalk(scene, sidewalk_type, odim, dim);
 
   // Load scene
   let initial = array_list[0];
   await loadScene(scene, array_map, initial, mixers, odim, dim);
 
-  console.log("SCENE: ", scene);
-  console.log("MIXERS: ", mixers);
-
-  // Reduce array list
-  let al = shortenArrayList(array_list);
+  //console.log("SCENE: ", scene);
+  //console.log("MIXERS: ", mixers);
 
   // Store agents
   let agents = array_map.filter((x) => x.entity_type == "agent").map((x) => x.number);
@@ -146,6 +150,10 @@ export async function World(
   let paths = {};
   let paths_m = {};
 
+  // Reduce array list
+  let al = shortenArrayList2(array_list, agents);
+
+  // Create paths
   for (let i = 0; i < agents.length; i++) {
     let a = agents[i];
     let n = names[i];
@@ -167,15 +175,16 @@ export async function World(
     paths_m[n] = paths[n].map((node) => convertPosition(node, odim, dim));
   }
 
-  console.log("PATHS_M: ", paths_m);
+  //console.log("PATHS_M: ", paths_m);
 
   scene.userData.names = names;
+  scene.userData.agent_numbers = agents;
   scene.userData.array_list = al;
 
   scene.traverse((child) => {
-    console.log("CHILD NAME: ", child.name);
+    //console.log("CHILD NAME: ", child.name);
     if (!child.name.includes("sidewalk")) {
-      console.log("CHILD: ", child);
+      //console.log("CHILD: ", child);
     }
     if (names.includes(child.name)) {
       child.path = paths[child.name];
@@ -202,7 +211,7 @@ export async function World(
 
   // Mouse event handlers
   overlayCanvas.addEventListener("mousemove", (event) => {
-    const rect = overlayCanvas.getBoundingClientRect();
+    let rect = overlayCanvas.getBoundingClientRect();
     mousePos.x = event.clientX - rect.left;
     mousePos.y = event.clientY - rect.top;
 
@@ -222,9 +231,9 @@ export async function World(
   });
 
   overlayCanvas.addEventListener("click", (event) => {
-    const rect = overlayCanvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+    let rect = overlayCanvas.getBoundingClientRect();
+    let x = event.clientX - rect.left;
+    let y = event.clientY - rect.top;
 
     buttons.forEach((button) => {
       if (isPointInButton(x, y, button)) {
@@ -249,14 +258,14 @@ function drawButtons(canvas, canvas_2d) {
   canvas_2d.clearRect(0, 0, canvas.width, canvas.height);
 
   buttons.forEach((button, index) => {
-    const isHovered = hoveredButton === index;
+    let isHovered = hoveredButton === index;
 
     // Button background
     canvas_2d.fillStyle = button.color;
     canvas_2d.globalAlpha = isHovered ? 0.9 : 0.7;
 
     // Rounded rectangle
-    const radius = 8;
+    let radius = 8;
     canvas_2d.beginPath();
     canvas_2d.roundRect(button.x, button.y, button.width, button.height, radius);
     canvas_2d.fill();
@@ -276,8 +285,8 @@ function drawButtons(canvas, canvas_2d) {
     canvas_2d.textAlign = "center";
     canvas_2d.textBaseline = "middle";
 
-    const textX = button.x + button.width / 2;
-    const textY = button.y + button.height / 2;
+    let textX = button.x + button.width / 2;
+    let textY = button.y + button.height / 2;
     canvas_2d.fillText(button.text(), textX, textY);
   });
 }
@@ -332,13 +341,13 @@ function onReset() {
 
 function advanceCharacter(scene, character, time) {
   let child = Array.from(scene.children).filter((child) => child.name === character)[0];
-
+  let cc = scene.userData.control_character;
   let start, end, target;
 
   if (child.path_m.length == child.node + 1) {
     target = child.path_m[child.path_m.length - 1];
     changeAnimation(scene, child.name, "idle");
-    if (child.name == "A" && child.justFinished == true) {
+    if (child.name == cc && child.justFinished == true) {
       let arr = scene.userData.array_list[child.node];
       let aactions = getActions(arr, child.path[child.node], actions);
       highlightTargets(scene, child.path[child.node], aactions);
@@ -346,6 +355,10 @@ function advanceCharacter(scene, character, time) {
     }
   } else {
     child.fraction += time;
+
+    if (child.fraction > 1) {
+      child.fraction = 1;
+    }
 
     start = child.path_m[child.node];
     end = child.path_m[child.node + 1];
@@ -360,6 +373,9 @@ function advanceCharacter(scene, character, time) {
     if (child.fraction >= 1) {
       child.node++;
       child.fraction = 0;
+      if (scene.userData.total_moves > scene.userData.moves) {
+        child.justFinished = true;
+      }
     }
 
     if (end[0] === start[0] && end[1] === start[1]) {
@@ -418,11 +434,11 @@ function highlightTargets(scene, position, actions) {
 }
 
 function mouseHighlight() {
-  console.log("mouseover event");
+  //console.log("mouseover event");
   event.preventDefault();
 
   // Get the canvas bounding rectangle
-  const rect = renderer.domElement.getBoundingClientRect();
+  let rect = renderer.domElement.getBoundingClientRect();
 
   // Calculate mouse position relative to the canvas
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -438,20 +454,20 @@ function mouseHighlight() {
         object.material.color.set(0xff0000);
       }
       if (object != pastObject) {
-        console.log("new object");
+        //console.log("new object");
         if (pastObject != null) {
           if (destinations.includes(pastObject.name)) {
-            console.log("restore color");
+            //console.log("restore color");
             pastObject.material.color.set(0x90ee90);
           }
         }
         pastObject = object;
       }
     } else {
-      console.log("No object");
+      //console.log("No object");
       if (pastObject != null) {
         if (destinations.includes(pastObject.name)) {
-          console.log("restore color");
+          //console.log("restore color");
           pastObject.material.color.set(0x90ee90);
         }
       }
@@ -472,8 +488,11 @@ function unhighlightAll(scene) {
 function inClick() {
   event.preventDefault();
 
+  // Get character under control
+  let cc = scene.userData.control_character;
+
   // Get the canvas bounding rectangle
-  const rect = renderer.domElement.getBoundingClientRect();
+  let rect = renderer.domElement.getBoundingClientRect();
 
   // Calculate mouse position relative to the canvas
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
@@ -487,32 +506,78 @@ function inClick() {
     //object.material.color.set( Math.random() * 0xffffff );
 
     if (destinations.includes(object.name)) {
-      let child = Array.from(scene.children).filter((child) => child.name === "A")[0];
-      //child.path.push([parseInt(object.name.substring(9, 9)), parseInt(object.name.substring(10, 10))])
+      let child = Array.from(scene.children).filter((child) => child.name === cc)[0];
+
+      // Add action to arrays
       child.path_m.push([object.position.x, object.position.z]);
-      interactions.push([
+      let new_pos = [
         parseInt(object.name.substring(9, 10)),
         parseInt(object.name.substring(10, 11)),
-      ]);
+      ];
+      child.path.push(new_pos);
+      interactions.push(new_pos);
+
+      let cc_num = scene.userData.agent_numbers[scene.userData.names.indexOf(cc)];
+      let last_arr = [...scene.userData.array_list][scene.userData.array_list.length - 1];
+      let new_arr = updateArray(last_arr, new_pos, cc_num);
+      scene.userData.array_list.push(new_arr);
+      scene.userData.moves++;
+
+      // Resent
       unhighlightAll(scene);
       destinations = [];
-      renderer.domElement.removeEventListener("click", inClick, false);
 
       // Remove buttons
-      let canvas = document.getElementById("overlay"); // Assuming your canvas has the ID 'myCanvas'
-      canvas.style.display = "none";
+      if (scene.userData.moves == 1) {
+        let canvas = document.getElementById("overlay"); // Assuming canvas has the ID 'overlay'
+        canvas.style.display = "none";
+      }
+
+      if (scene.userData.moves == scene.userData.total_moves) {
+        renderer.domElement.removeEventListener("click", inClick, false);
+      }
     }
   }
 
   render();
 }
 
+// Update array
+function replaceDeepElement(arr, oldValue, newValue) {
+  let out = [...arr];
+  for (let i = 0; i < out.length; i++) {
+    if (Array.isArray(out[i])) {
+      out[i] = replaceDeepElement(out[i], oldValue, newValue); // Recursively call for nested arrays
+    } else if (out[i] === oldValue) {
+      out[i] = newValue; // Replace the element
+    }
+  }
+  return out;
+}
+
+function updateArray(arr, new_pos, num) {
+  let out = [...replaceDeepElement(arr, num, 0)];
+  // Add num at new_pos
+  out[new_pos[0]][new_pos[1]] = num;
+
+  return out;
+}
+
 // Shorten array
+function searchArray2d(arr, list) {
+  let count = 0;
+  for (let i of list) {
+    count += Number(arr.flat().indexOf(i) != -1);
+  }
+
+  return count;
+}
+
 function shortenArrayList(a) {
   let out;
   out = a;
   if (a.length > 2) {
-    for (var i = a.length - 2; i >= 1; i--) {
+    for (let i = a.length - 2; i >= 1; i--) {
       let last = out[i];
       let seclast = out[i - 1];
       if (compareArrays2d(seclast, last)) {
@@ -523,9 +588,35 @@ function shortenArrayList(a) {
   return out;
 }
 
+function shortenArrayList2(al, agent_numbers) {
+  let out = al;
+  for (let i = al.length - 1; i >= 0; i--) {
+    let current = out[i];
+    let pop = false;
+    if (searchArray2d(current, agent_numbers) == 0) {
+      pop = true;
+    }
+
+    if (i - 1 >= 0) {
+      let next = out[i - 1];
+      if (compareArrays2d(current, next)) {
+        pop = true;
+      }
+    }
+
+    if (pop) {
+      out.pop();
+    }
+  }
+
+  return out;
+}
+
 // Render
 function render() {
+  //console.log("call render");
   if (isPlaying) {
+    //console.log("isPlaying");
     timeDelta = clock.getDelta();
 
     // Update all the animation frames
@@ -539,6 +630,7 @@ function render() {
     }
 
     if (isMoving) {
+      //console.log("isMoving");
       thisTime = performance.now();
       lastTime = thisTime;
 
@@ -547,9 +639,23 @@ function render() {
       for (let name of names) {
         advanceCharacter(scene, name, timeDelta);
       }
+    } else {
+      //console.log("Not moving");
     }
 
     renderer.render(scene, scene.userData.camera);
     animationId = requestAnimationFrame(render);
+  } else {
+    //console.log("Not playing");
   }
+}
+
+export function endWorld() {
+  // Remove existing canvas
+  let elementToRemove = document.getElementById("overlay");
+  elementToRemove.parentNode.removeChild(elementToRemove);
+
+  // Create new canvas
+  overlayCanvas = document.createElement("canvas");
+  overlayCtx = overlayCanvas.getContext("2d");
 }

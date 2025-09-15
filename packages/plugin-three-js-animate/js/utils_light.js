@@ -1,35 +1,3 @@
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-
-export async function largestObstacle(obstacles) {
-  //const gltfloader = new GLTFLoader().setPath("assets/");
-  const gltfloader = new GLTFLoader();
-
-  // Load obstacle model to get dimensions
-  let filename, gltf;
-  let uwidth = 0;
-  let ulength = 0;
-
-  for (let ob of obstacles) {
-    filename = ob;
-    gltf = await gltfloader.loadAsync(filename);
-
-    gltf.scene.traverse((child) => {
-      if (child.geometry != null) {
-        let x =
-          child.scale.x *
-          Math.abs(child.geometry.boundingBox.max.x - child.geometry.boundingBox.min.x);
-        let z =
-          child.scale.z *
-          Math.abs(child.geometry.boundingBox.max.z - child.geometry.boundingBox.min.z);
-        if (x > uwidth) uwidth = x;
-        if (z > ulength) ulength = z;
-      }
-    });
-  }
-
-  return [uwidth, ulength];
-}
-
 export function convertPosition(indices, odim, wdim) {
   //let bwidth = 1.5915793398780806;
   //let blength = 2.022771790592742;
