@@ -133,6 +133,10 @@ const info = <const>{
       type: ParameterType.BOOL,
       default: false,
     },
+    questions_type: {
+      type: ParameterType.STRING,
+      default: "multi", // multi or slider
+    },
     questions: {
       type: ParameterType.COMPLEX,
       array: true,
@@ -156,7 +160,7 @@ const info = <const>{
         /** If true, then the question will be centered and options will be displayed horizontally. */
         horizontal: {
           type: ParameterType.BOOL,
-          default: false,
+          default: true,
         },
         /** Name of the question in the trial data. If no name is given, the questions are named Q0, Q1, etc. */
         name: {
