@@ -24,7 +24,11 @@
                 "blocker_blocker.json"].map((x) => "scenarios/" + x);
     let array_lists = await fetchArrays(files);
 
-    const jsPsych = initJsPsych();
+    const jsPsych = initJsPsych({
+      on_data_update: function(data) {
+        console.log('Just added new data. The contents of the data are: ' + JSON.stringify(data));
+      }
+    });
 
     const trial1 = {
       type: jsPsychPluginThreeJsAnimate,
@@ -50,11 +54,15 @@
         }
       ],
       sidewalk_type: "checker",
-      trial_type: "interactive",
-      interaction_info: {
-        control_character: "B",
-        moves: 3
-      }
+      trial_type: "animation",
+      include_questions: true,
+      questions: [
+        {
+          name: "care",
+          prompt: "How much does Person A care about other people?",
+          options: ["Not at all", "A medium amount", "A lot"]
+        }
+      ]
     };
 
     const trial2 = {
@@ -81,7 +89,11 @@
         }
       ],
       sidewalk_type: "checker",
-      trial_type: "interactive"
+      trial_type: "interactive",
+      interaction_info: {
+        control_character: "B",
+        moves: 3
+      }
     };
 
     jsPsych.run([trial1, trial2])

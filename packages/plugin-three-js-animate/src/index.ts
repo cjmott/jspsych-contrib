@@ -335,7 +335,6 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
     let c = document.getElementById("jspsych-canvas-stimulus");
     c.style.display = "block";
 
-    // All function stuff here
     // run function on c based on inputs
     World(
       trial.array_list,
@@ -359,6 +358,17 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
 
       // create object to hold responses
       var question_data = {};
+
+      // End world
+      let response_inter = endWorld();
+      console.log("END WORLD: ", response_inter);
+
+      // Store
+      if (trial.trial_type == "interactive") {
+        let obje = {};
+        obje["QInt"] = response_inter;
+        Object.assign(question_data, obje);
+      }
 
       // If there are questions, store them
       if (trial.include_questions) {
@@ -386,9 +396,6 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
         response: question_data,
         question_order: question_order,
       };
-
-      // end world
-      endWorld();
 
       // next trial
       this.jsPsych.finishTrial(trial_data);
@@ -492,7 +499,13 @@ camera_controls: true
 TO DO:
 - Submit button does not work, so cannot continue to next trial or end DONE
 - Only control character A. Allow users to specify which characters are 
-controllable and the order in which they move.
-- Make non-interactive work with no buttons
+controllable and the order in which they move. HALF DONE
+- Fix initial animation skipping MOSTLY FIXED
+- Store clicks for interactive DONE
+- Implement non-interactive DONE
+
+- Interactive mode where people plan out path
+- Implement choices for controls
+- Implement choices for camera
 - Implement slider question in addition to multiple choice
 */

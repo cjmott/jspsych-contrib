@@ -11,7 +11,7 @@ let camera, renderer, scene, dim, odim;
 let mixers;
 let animationId;
 let isPlaying, isMoving;
-let timeDelta, clock, startTime, lastTime, thisTime;
+let timeDelta, clock;
 let mouse, raycaster, hoveredButton, mousePos, interactions;
 let destinations = [];
 let actions = [
@@ -21,6 +21,7 @@ let actions = [
   [0, -1],
 ];
 let pastObject = null;
+let response_inter;
 
 // Button definitions
 let overlayCanvas = document.createElement("canvas");
@@ -89,20 +90,26 @@ export async function World(
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
 
-  // Add event listeners for interaction
-  if (trial_type == "interactive") {
-    renderer.domElement.addEventListener("click", inClick, false);
-    renderer.domElement.addEventListener("mousemove", mouseHighlight);
-  }
-
   // Create scene
   scene = new THREE.Scene();
   scene.name = "scene";
 
   // For interacive
-  scene.userData.control_character = interaction_info.control_character;
-  scene.userData.total_moves = interaction_info.moves;
+  if (trial_type == "interactive") {
+    // Event listeners for clicking and highlighting
+    renderer.domElement.addEventListener("click", inClick, false);
+    renderer.domElement.addEventListener("mousemove", mouseHighlight);
+  }
+
+  // Information about character control
   scene.userData.moves = 0;
+  if (trial_type == "interactive") {
+    scene.userData.control_character = interaction_info.control_character;
+    scene.userData.total_moves = interaction_info.moves;
+  } else {
+    scene.userData.control_character = "NA";
+    scene.userData.total_moves = 0;
+  }
 
   // Camera
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -300,8 +307,7 @@ function isPointInButton(x, y, button) {
 
 function onPlay() {
   if (isPlaying == false || isMoving == false) {
-    startTime = performance.now();
-    lastTime = startTime;
+    clock.getDelta();
 
     isPlaying = true;
     isMoving = true;
@@ -631,8 +637,6 @@ function render() {
 
     if (isMoving) {
       //console.log("isMoving");
-      thisTime = performance.now();
-      lastTime = thisTime;
 
       let names = scene.userData.names;
 
@@ -658,4 +662,8 @@ export function endWorld() {
   // Create new canvas
   overlayCanvas = document.createElement("canvas");
   overlayCtx = overlayCanvas.getContext("2d");
+
+  // Return
+  response_inter = JSON.stringify(interactions);
+  return response_inter;
 }
