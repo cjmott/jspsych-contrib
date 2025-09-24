@@ -84,7 +84,7 @@ export function questionMultiChoice(questions, randomize_question_order = false)
       let question_id = question_order[i];
 
       let match = display_element.querySelector(`#${plugin_id_name}-${question_id}`);
-      let val: String;
+      let val;
 
       if (match.querySelector("input[type=radio]:checked") !== null) {
         val = match.querySelector("input[type=radio]:checked").value;
@@ -170,10 +170,7 @@ questions_type: {
     },
 */
 
-export function questionMultiSlider(
-  questions, // Implement multi and randomize order
-  randomize_question_order = false
-) {
+export function questionMultiSlider(questions, randomize_question_order = false) {
   let out = {};
   let plugin_id_name = `multi-slider`;
 
@@ -249,9 +246,13 @@ export function questionMultiSlider(
     all_sliders.forEach(function (slider) {
       slider.addEventListener("click", function () {
         slider.classList.add("clicked"); // record the fact that this slider has been clicked
+        console.log("CLICK");
+        console.log(slider.classList);
       });
       slider.addEventListener("change", function () {
-        slider.classList.add("clicked"); // record the fact that this slider has been clicked
+        slider.classList.add("clicked"); // record the fact that this slider has been changed
+        console.log("CHANGE");
+        console.log(slider.classList);
       });
     });
   };
@@ -267,12 +268,14 @@ export function questionMultiSlider(
       let match = display_element.querySelector(`#${plugin_id_name}-${question_id}`);
 
       if (question.required) {
-        let slider = match.querySelectorAll(".jspsych-slider");
+        let slider = match.querySelector("#jspsych-canvas-slider-response-response");
+        console.log(slider);
         if (!slider.classList.contains("clicked")) {
           missing_required++;
         }
       } else if (question.requested) {
-        let slider = match.querySelectorAll(".jspsych-slider");
+        let slider = match.querySelector("#jspsych-canvas-slider-response-response");
+        console.log(slider);
         if (!slider.classList.contains("clicked")) {
           missing_requested++;
         }

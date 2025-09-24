@@ -94,6 +94,17 @@ const info = <const>{
         moves: 1,
       },
     },
+    actions: {
+      type: ParameterType.COMPLEX,
+      array: true,
+      default: [
+        [1, 0],
+        [0, 1],
+        [0, 0],
+        [-1, 0],
+        [0, -1],
+      ],
+    },
     /**  What animation controls to include: pause, reset, all
      * (will always include play */
     animation_controls: {
@@ -129,13 +140,68 @@ const info = <const>{
       type: ParameterType.BOOL,
       default: false,
     },
+    include_questions: {
+      type: ParameterType.BOOL,
+      default: false,
+    },
+    questions_type: {
+      type: ParameterType.STRING,
+      default: "multi", // multi or slider
+    },
     questions: {
       type: ParameterType.COMPLEX,
-      default: {
-        html: ``,
-        question_order: [],
-        function: () => null,
+      array: true,
+      nested: {
+        /** Question prompt. */
+        prompt: {
+          type: ParameterType.HTML_STRING,
+          default: undefined,
+        },
+        /** Array of multiple choice options for this question. */
+        options: {
+          type: ParameterType.STRING,
+          array: true,
+          default: undefined,
+        },
+        /** Whether or not a response to this question must be given in order to continue. */
+        required: {
+          type: ParameterType.BOOL,
+          default: false,
+        },
+        /** If true, then the question will be centered and options will be displayed horizontally. */
+        horizontal: {
+          type: ParameterType.BOOL,
+          default: false,
+        },
+        /** Name of the question in the trial data. If no name is given, the questions are named Q0, Q1, etc. */
+        name: {
+          type: ParameterType.STRING,
+          default: "",
+        },
       },
+      default: [
+        {
+          name: "dummy",
+          prompt: "dummy",
+          options: ["dummy"],
+        },
+      ],
+    },
+    /**
+     * If true, the display order of `questions` is randomly determined at the start of the trial. In the data object,
+     * `Q0` will still refer to the first question in the array, regardless of where it was presented visually.
+     */
+    randomize_question_order: {
+      type: ParameterType.BOOL,
+      default: false,
+    },
+    /*
+     * If true, a participant who clicks "submit" without answering all the questions
+     * is prompted to do so
+     */
+    request_response: {
+      type: ParameterType.BOOL,
+      default: false,
     },
   },
   data: {
@@ -214,11 +280,61 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
       html += `<form id="${trial_form_id}" autocomplete="off">`;
     }
 
-    // Infer whether there are questions
-    let include_questions = trial.questions.html.length !== 0;
+    if (trial.include_questions) {
+      // generate question order. this is randomized here as opposed to randomizing the order of trial.questions
+      // so that the data are always associated with the same question regardless of order
+      var question_order = [];
+      for (var i = 0; i < trial.questions.length; i++) {
+        question_order.push(i);
+      }
+      if (trial.randomize_question_order) {
+        question_order = this.jsPsych.randomization.shuffle(question_order);
+      }
 
-    if (include_questions) {
-      html += trial.questions.html;
+      // add multiple-choice questions
+      for (var i = 0; i < trial.questions.length; i++) {
+        // get question based on question_order
+        var question = trial.questions[question_order[i]];
+        var question_id = question_order[i];
+
+        // create question container
+        var question_classes = [`${plugin_id_name}-question`];
+        if (question.horizontal) {
+          question_classes.push(`${plugin_id_name}-horizontal`);
+        }
+
+        html += `<div id="${plugin_id_name}-${question_id}" class="${question_classes.join(
+          " "
+        )}" data-name="${question.name}">`;
+
+        // add question text
+        html += `<p class="${plugin_id_name}-text survey-multi-choice">${question.prompt}`;
+        if (question.required) {
+          html += "<span class='required'>*</span>";
+        }
+        html += "</p>";
+
+        // create option radio buttons
+        for (var j = 0; j < question.options.length; j++) {
+          // add label and question text
+          var option_id_name = `${plugin_id_name}-option-${question_id}-${j}`;
+          var input_name = `${plugin_id_name}-response-${question_id}`;
+          var input_id = `${plugin_id_name}-response-${question_id}-${j}`;
+
+          var required_attr = question.required ? "required" : "";
+
+          // add radio button container
+          html += `
+          <div id="${option_id_name}" class="${plugin_id_name}-option">
+            <label class="${plugin_id_name}-text" for="${input_id}">
+              <input type="radio" name="${input_name}" id="${input_id}" value="${question.options[j]}" ${required_attr} />
+              ${question.options[j]}
+              </label>
+          </div>`;
+        }
+
+        html += "</div>";
+      }
     }
 
     // add submit button
@@ -227,13 +343,8 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
     } />`;
     html += "</form>";
 
-    // Add html
+    // render
     display_element.innerHTML = html;
-
-    // Create event listeners for clicks, if any
-    if (Object.keys(trial.question.includes("listeners"))) {
-      trial.question.listeners(display_element);
-    }
 
     // draw canvas
     let c = document.getElementById("jspsych-canvas-stimulus");
@@ -246,13 +357,13 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
       trial.sidewalk_type,
       trial.trial_type,
       trial.interaction_info,
+      trial.actions,
       trial.animation_controls,
       trial.camera_controls,
       c
     );
 
     // Submit
-    let submits = 0;
     const trial_form = display_element.querySelector<HTMLFormElement>(`#${trial_form_id}`);
 
     trial_form.addEventListener("submit", (event) => {
@@ -276,42 +387,34 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
       }
 
       // If there are questions, store them
-      let missing_requested = 0;
-      let missing_required = 0;
-
-      if (include_questions) {
-        let obje = trial.questions.function(display_element);
-        missing_requested = obje.missing_requested;
-        missing_required = obje.missing_required;
-
-        Object.assign(question_data, obje);
+      if (trial.include_questions) {
+        for (var i = 0; i < trial.questions.length; i++) {
+          var match = display_element.querySelector(`#${plugin_id_name}-${i}`);
+          var id = "Q" + i;
+          var val: String;
+          if (match.querySelector("input[type=radio]:checked") !== null) {
+            val = match.querySelector<HTMLInputElement>("input[type=radio]:checked").value;
+          } else {
+            val = "";
+          }
+          var obje = {};
+          var name = id;
+          if (match.attributes["data-name"].value !== "") {
+            name = match.attributes["data-name"].value;
+          }
+          obje[name] = val;
+          Object.assign(question_data, obje);
+        }
       }
+      // save data
+      var trial_data = {
+        rt: response_time,
+        response: question_data,
+        question_order: question_order,
+      };
 
-      if (missing_required > 0) {
-        alert(
-          `There are ` +
-            missing_required +
-            ` required questions without an answer.\n
-          Please answer all the questions before continuing.`
-        );
-      } else if (missing_requested > 0 && submits == 0) {
-        alert(
-          `There are ` +
-            missing_requested +
-            ` questions without an answer.
-          Please consider answering all the questions before continuing.`
-        );
-      } else {
-        // save data
-        let trial_data = {
-          rt: response_time,
-          response: question_data,
-          question_order: trial.questions.question_order,
-        };
-
-        // next trial
-        this.jsPsych.finishTrial(trial_data);
-      }
+      // next trial
+      this.jsPsych.finishTrial(trial_data);
     });
 
     var startTime = performance.now();

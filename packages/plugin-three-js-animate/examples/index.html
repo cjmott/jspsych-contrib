@@ -15,6 +15,7 @@
 
     // Import functions
     import { fetchArrays } from '../js/utils_light.js';
+    import { questionMultiChoice, questionMultiSlider } from '../js/questions.js';
 
     // Declare variable
 		let interactions = [];
@@ -61,13 +62,15 @@
       },
       actions: [[1, 0], [0, 1], [0, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
       include_questions: true,
-      questions: [
+      questions: questionMultiChoice([
         {
           name: "care",
           prompt: "How much does Person A care about other people?",
-          options: ["Not at all", "A medium amount", "A lot"]
+          options: ["Not at all", "A medium amount", "A lot"],
+          requested: true,
+          horizontal: true // DOES NOT WORK
         }
-      ]
+      ])
     };
 
     const trial2 = {
@@ -98,7 +101,20 @@
       interaction_info: {
         control_character: "A",
         moves: 1
-      }
+      },
+      include_questions: true,
+      questions: questionMultiSlider([
+        {
+          name: "care",
+          prompt: "How much does Person A care about other people in relation to himself?",
+          labels: ["Much less", "The same", "Much more"],
+          requested: true,
+          min: -5, // Add in defaults
+          max: 5,
+          step: 0.1,
+          start: 0,
+        }
+      ])
     };
 
     jsPsych.run([trial1, trial2])
