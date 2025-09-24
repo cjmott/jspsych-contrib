@@ -14,12 +14,7 @@ let isPlaying, isMoving;
 let timeDelta, clock;
 let mouse, raycaster, hoveredButton, mousePos, interactions;
 let destinations = [];
-let actions = [
-  [1, 0],
-  [0, 1],
-  [-1, 0],
-  [0, -1],
-];
+let actions;
 let pastObject = null;
 let response_inter;
 
@@ -54,6 +49,7 @@ export async function World(
   sidewalk_type,
   trial_type,
   interaction_info,
+  actions_list,
   animation_controls = "all",
   camera_controls = true,
   c
@@ -68,6 +64,8 @@ export async function World(
   mouse = new THREE.Vector2();
 
   interactions = [];
+  actions = actions_list;
+  console.log(actions);
 
   // Buttons
   //const overlayCanvas = document.createElement("canvas");
@@ -411,6 +409,7 @@ function changeAnimation(scene, object, animation) {
 
 // Create action list
 function getActions(array, position, actions) {
+  let cc_num = array[position[0]][position[1]];
   let aactions = [];
   for (let action of actions) {
     let destX = position[0] + action[0];
@@ -418,7 +417,7 @@ function getActions(array, position, actions) {
     if (array.length > destX && destX >= 0) {
       if (array[destX].length > destY && destY >= 0) {
         let target = array[destX][destY];
-        if (target == 0) {
+        if ([0, cc_num].includes(target)) {
           aactions.push(action);
         }
       }

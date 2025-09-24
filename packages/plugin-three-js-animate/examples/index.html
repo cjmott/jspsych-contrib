@@ -54,7 +54,12 @@
         }
       ],
       sidewalk_type: "checker",
-      trial_type: "animation",
+      trial_type: "interactive",
+      interaction_info: {
+        control_character: "B",
+        moves: 2
+      },
+      actions: [[1, 0], [0, 1], [0, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
       include_questions: true,
       questions: [
         {
@@ -91,8 +96,8 @@
       sidewalk_type: "checker",
       trial_type: "interactive",
       interaction_info: {
-        control_character: "B",
-        moves: 3
+        control_character: "A",
+        moves: 1
       }
     };
 
