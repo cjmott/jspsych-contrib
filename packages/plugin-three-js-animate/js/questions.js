@@ -246,13 +246,9 @@ export function questionMultiSlider(questions, randomize_question_order = false)
     all_sliders.forEach(function (slider) {
       slider.addEventListener("click", function () {
         slider.classList.add("clicked"); // record the fact that this slider has been clicked
-        console.log("CLICK");
-        console.log(slider.classList);
       });
       slider.addEventListener("change", function () {
         slider.classList.add("clicked"); // record the fact that this slider has been changed
-        console.log("CHANGE");
-        console.log(slider.classList);
       });
     });
   };
@@ -269,13 +265,11 @@ export function questionMultiSlider(questions, randomize_question_order = false)
 
       if (question.required) {
         let slider = match.querySelector("#jspsych-canvas-slider-response-response");
-        console.log(slider);
         if (!slider.classList.contains("clicked")) {
           missing_required++;
         }
       } else if (question.requested) {
         let slider = match.querySelector("#jspsych-canvas-slider-response-response");
-        console.log(slider);
         if (!slider.classList.contains("clicked")) {
           missing_requested++;
         }
