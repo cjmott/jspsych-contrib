@@ -1,27 +1,31 @@
 // Functions for different questions types
-// TO DO: LIKERT, FREE RESPONSE
+
+/*
+Plan:
+Only one function
+Question-specific parameters include group, type of question
+Overall parameters include randomize_within_groups (argument is list of groups to 
+randomize within) and randomize_between_groups (argument is boolean)
+Returns: HTML for each question, listeners for each question type, list with question order
+(where question number is order in which question was written in function call) subject
+to constraints above
+
+Procedure:
+1. Copy input list
+2. Assign each element a number for its order
+3. Loop over each question type, creating html, which is stored in object, and listener 
+functions, where are stored in array for return
+4. Separate list of objects by group, randomize between and within groups, and then rejoin
+5. Extract html list and list of question numbers in new order
+6. Join html list
+7. Return html, list of question numbers, and listener list
+*/
 
 export function questionMultiChoice(questions, randomize_question_order = false) {
   let out = {};
-  let plugin_id_name = `jspsych-survey-multi-choice`;
+  let plugin_id_name = `multi-choice`;
 
-  // Create CSS
-  let css = ``;
-  css += '<style id="jspsych-survey-multi-choice-css">';
-  css +=
-    ".jspsych-survey-multi-choice-question { margin-top: 2em; margin-bottom: 2em; text-align: left; }" +
-    ".jspsych-survey-multi-choice-text span.required {color: darkred;}" +
-    ".jspsych-survey-multi-choice-horizontal .jspsych-survey-multi-choice-text {  text-align: center;}" +
-    ".jspsych-survey-multi-choice-option { line-height: 2; }" +
-    ".jspsych-survey-multi-choice-horizontal .jspsych-survey-multi-choice-option {  display: inline-block;  margin-left: 1em;  margin-right: 1em;  vertical-align: top;}" +
-    "label.jspsych-survey-multi-choice-text input[type='radio'] {margin-right: 1em;}";
-  css += "</style>";
-
-  out["css"] = css;
-
-  // Create HTML
   let html = ``;
-
   // generate question order. this is randomized here as opposed to randomizing the order of trial.questions
   // so that the data are always associated with the same question regardless of order
   let question_order = [];
@@ -90,7 +94,7 @@ export function questionMultiChoice(questions, randomize_question_order = false)
   out["html"] = html;
   out["question_order"] = question_order;
 
-  const multiCheck = (display_element) => {
+  const multicheck = (display_element) => {
     let missing_requested = 0;
     let missing_required = 0;
     let obje = {};
@@ -123,7 +127,7 @@ export function questionMultiChoice(questions, randomize_question_order = false)
     return obje;
   };
 
-  out["function"] = multiCheck;
+  out["function"] = multicheck;
 
   return out;
 }
@@ -186,170 +190,10 @@ questions_type: {
     },
 */
 
-export function questionLikert(
-  questions,
-  randomize_question_order = false,
-  scale_width = null,
-  preamble = null,
-  autocomplete = false
-) {
-  let out = {};
-  let plugin_id_name = `jspsych-survey-likert`;
-
-  // Create width
-  let w;
-  if (scale_width !== null) {
-    w = scale_width + "px";
-  } else {
-    w = "100%";
-  }
-
-  // Create CSS
-  let css = ``;
-  css += '<style id="jspsych-survey-likert-css">';
-  css +=
-    ".jspsych-survey-likert-statement { display:block; font-size: 16px; padding-top: 40px; margin-bottom:10px; }" +
-    ".jspsych-survey-likert-opts { list-style:none; width:" +
-    w +
-    "; margin:auto; padding:0 0 35px; display:block; font-size: 14px; line-height:1.1em; }" +
-    ".jspsych-survey-likert-opt-label { line-height: 1.1em; color: #444; }" +
-    ".jspsych-survey-likert-opts:before { content: ''; position:relative; top:11px; /*left:9.5%;*/ display:block; background-color:#efefef; height:4px; width:100%; }" +
-    ".jspsych-survey-likert-opts:last-of-type { border-bottom: 0; }" +
-    ".jspsych-survey-likert-opts li { display:inline-block; /*width:19%;*/ text-align:center; vertical-align: top; }" +
-    ".jspsych-survey-likert-opts li input[type=radio] { display:block; position:relative; top:0; left:50%; margin-left:-6px; }";
-  css += "</style>";
-
-  out["css"] = css;
-
-  // Create HTML
-  let html = ``;
-
-  // show preamble text
-  if (preamble !== null) {
-    html +=
-      '<div id="jspsych-survey-likert-preamble" class="jspsych-survey-likert-preamble">' +
-      preamble +
-      "</div>";
-  }
-  if (autocomplete) {
-    html += '<form id="jspsych-survey-likert-form">';
-  } else {
-    html += '<form id="jspsych-survey-likert-form" autocomplete="off">';
-  }
-
-  // generate question order. this is randomized here as opposed to randomizing the order of trial.questions
-  // so that the data are always associated with the same question regardless of order
-  let question_order = [];
-  for (let i = 0; i < questions.length; i++) {
-    question_order.push(i);
-  }
-  if (randomize_question_order) {
-    question_order = this.jsPsych.randomization.shuffle(question_order);
-  }
-
-  // add multiple-choice questions
-  for (let i = 0; i < questions.length; i++) {
-    // get question based on question_order
-    let question = questions[question_order[i]];
-    let question_id = question_order[i];
-
-    let name;
-    if (question.name == "") {
-      name = "Q" + question_id;
-    } else {
-      name = question.name;
-    }
-
-    // create question container
-    let question_classes = [`${plugin_id_name}-question`];
-
-    html += `<div id="${plugin_id_name}-${question_id}" class="${question_classes.join(
-      " "
-    )}" data-name="${name}">`;
-
-    // add question text
-    html += `<p class="${plugin_id_name}-text survey">${question.prompt}`;
-    /* No stars next to required questions
-        if (question.required) {
-            html += "<span class='required'>*</span>";
-        }
-        */
-    html += "</p>";
-
-    // add options
-    let width = 100 / question.labels.length;
-    let options_string =
-      '<ul class="jspsych-survey-likert-opts" data-name="' +
-      name +
-      '" data-radio-group="Q' +
-      question_id +
-      '">';
-    for (var j = 0; j < question.labels.length; j++) {
-      options_string +=
-        '<li style="width:' +
-        width +
-        '%"><label class="jspsych-survey-likert-opt-label"><input type="radio" class="jspsych-radio" name="Q' +
-        question_id +
-        '" value="' +
-        j +
-        '"';
-      options_string += ">" + question.labels[j] + "</label></li>";
-    }
-    options_string += "</ul>";
-    html += options_string;
-    html += "</div>";
-  }
-
-  out["html"] = html;
-  out["question_order"] = question_order;
-
-  const likertCheck = (display_element) => {
-    let missing_requested = 0;
-    let missing_required = 0;
-    let obje = {};
-
-    for (let i = 0; i < questions.length; i++) {
-      let question = questions[question_order[i]];
-      let question_id = question_order[i];
-
-      let match = display_element.querySelector(`#${plugin_id_name}-${question_id}`);
-      let val;
-
-      if (match.querySelector("input[type=radio]:checked") !== null) {
-        val = match.querySelector("input[type=radio]:checked").value;
-      } else {
-        val = "";
-        if (question.required) {
-          missing_required++;
-        } else if (question.requested) {
-          missing_requested++;
-        }
-      }
-
-      let name = match.attributes["data-name"].value;
-      obje[name] = val;
-    }
-
-    obje["missing_requested"] = missing_requested;
-    obje["missing_required"] = missing_required;
-
-    return obje;
-  };
-
-  out["function"] = likertCheck;
-
-  return out;
-}
-
 export function questionMultiSlider(questions, randomize_question_order = false) {
   let out = {};
-  let plugin_id_name = `jspsych-slider`;
+  let plugin_id_name = `multi-slider`;
 
-  // Create CSS
-  let css = ``;
-  out["css"] - css;
-
-  // Create HTML
   let html = ``;
 
   // generate question order. this is randomized here as opposed to randomizing the order of trial.questions
@@ -429,7 +273,7 @@ export function questionMultiSlider(questions, randomize_question_order = false)
     });
   };
 
-  const sliderCheck = (display_element) => {
+  const multicheck = (display_element) => {
     let missing_requested = 0;
     let missing_required = 0;
     let obje = {};
@@ -463,7 +307,7 @@ export function questionMultiSlider(questions, randomize_question_order = false)
     return obje;
   };
 
-  out["function"] = sliderCheck;
+  out["function"] = multicheck;
   out["listeners"] = createListeners;
 
   return out;

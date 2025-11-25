@@ -191,6 +191,10 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
 
     let html = "";
 
+    // Evaluate questions function
+    let questions = trial.questions;
+    console.log(questions);
+
     // Add canvas
     html = `<div id="${plugin_id_name}-wrapper" style="margin: 100px 0px;">`;
     html +=
@@ -213,6 +217,9 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
       label.${plugin_id_name}-text input[type='radio'] {margin-right: 1em;}
       </style>`;
 
+    html += questions.css;
+    console.log(questions.css);
+
     // show preamble text
     if (trial.preamble !== null) {
       html += `<div id="${plugin_id_name}-preamble" class="${plugin_id_name}-preamble">${trial.preamble}</div>`;
@@ -224,10 +231,6 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
     } else {
       html += `<form id="${trial_form_id}" autocomplete="off">`;
     }
-
-    // Evaluate questions function
-    let questions = trial.questions;
-    console.log(questions);
 
     // Infer whether there are questions
     let include_questions = questions.html.length !== 0;
