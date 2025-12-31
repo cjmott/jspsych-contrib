@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+import { createBackground } from "./createBackground.js";
 // Import functions
 import { loadScene } from "./loadScene.js";
 import { loadSidewalk } from "./loadSidewalk.js";
@@ -114,13 +115,14 @@ export async function World(
   camera.position.set(0, 10, 20);
   scene.userData.camera = camera;
 
-  // light
+  /* light
   let light = new THREE.AmbientLight(0x404040, 20); // soft white light
   scene.add(light);
 
   let directionalLight = new THREE.DirectionalLight(0xffffff, 5);
   directionalLight.position.set(5, 10, 7.5);
   scene.add(directionalLight);
+  */
 
   // Set camera controls
   if (camera_controls) {
@@ -141,6 +143,9 @@ export async function World(
   odim = await largestObstacle(obstacles);
   //console.log("ODIM: ", odim);
   await loadSidewalk(scene, sidewalk_type, odim, dim);
+
+  // Create background
+  await createBackground(scene, odim, dim);
 
   // Load scene
   let initial = array_list[0];

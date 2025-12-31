@@ -7,14 +7,22 @@ export async function loadScene(scene, map, array, mixers, odim, wdim) {
     let number = o.number;
     let path = o.model_path;
     let etype = o.entity_type;
+    let color_scheme = o.color_scheme;
 
     let positions = allIndexOf2d(array, number);
 
     for (let position of positions) {
       if (etype == "agent") {
-        await loadObject(scene, name, convertPosition(position, odim, wdim), path, mixers);
+        await loadObject(
+          scene,
+          name,
+          convertPosition(position, odim, wdim),
+          path,
+          color_scheme,
+          mixers
+        );
       } else {
-        await loadObject(scene, name, convertPosition(position, odim, wdim), path);
+        await loadObject(scene, name, convertPosition(position, odim, wdim), path, color_scheme);
       }
     }
   }

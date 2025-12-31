@@ -32,9 +32,9 @@ export async function loadSidewalk(scene, sidewalk_type = "checker", odim, wdim)
 
       if (sidewalk_type == "checker") {
         if ((i % 2 == 0 && j % 2 == 0) || (i % 2 == 1 && j % 2 == 1)) {
-          color = 0xa5a391;
+          color = 0x999da0; //0xa5a391;
         } else {
-          color = 0x130a06;
+          color = 0x48494b; //0x130a06;
         }
       } else {
         color = sidewalk_type;
@@ -51,7 +51,7 @@ export async function loadSidewalk(scene, sidewalk_type = "checker", odim, wdim)
 
       model.position.y = 0;
 
-      model.castShadow = true;
+      model.castShadow = false;
       model.receiveShadow = true;
 
       scene.add(model);

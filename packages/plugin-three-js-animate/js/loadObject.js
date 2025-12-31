@@ -2,7 +2,14 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 // Load object
-export async function loadObject(scene, name, position, filename, mixers = null) {
+export async function loadObject(
+  scene,
+  name,
+  position,
+  filename,
+  color_scheme = null,
+  mixers = null
+) {
   //const loader = new GLTFLoader().setPath( 'assets/' );
   const loader = new GLTFLoader();
 
@@ -25,6 +32,25 @@ export async function loadObject(scene, name, position, filename, mixers = null)
     if (child.name == "Armature") {
       console.log(child);
       console.log(model);
+
+      for (const cchild of child.children) {
+        let mat;
+
+        mat = new THREE.MeshPhongMaterial({
+          color: new THREE.Color("hsl(0, 0%, 50%)"),
+          shininess: 0,
+        });
+
+        if (color_scheme != null) {
+          for (let key of Object.keys(color_scheme)) {
+            if (cchild.name.startsWith(key)) {
+              mat.color = new THREE.Color(color_scheme[key]);
+            }
+          }
+        }
+
+        cchild.material = mat;
+      }
     }
 
     if (child.isMesh) {
@@ -36,35 +62,25 @@ export async function loadObject(scene, name, position, filename, mixers = null)
       let mat;
       console.log(child.name);
 
-      if (child.name == "Beddy") {
-        let box = child.geometry.boundingBox.max.sub(child.geometry.boundingBox.min);
-        let scale = child.scale;
-        console.log(box.multiply(scale));
+      mat = new THREE.MeshPhongMaterial({
+        color: new THREE.Color("hsl(0, 0%, 50%)"),
+        shininess: 0,
+      });
 
-        const loader = new THREE.TextureLoader();
-        let diffuseMap = loader.load("assets/granite-8858-in-architextures.jpg");
-        diffuseMap.colorSpace = THREE.SRGBColorSpace;
-        diffuseMap.minFilter = THREE.LinearFilter;
-        diffuseMap.generateMipmaps = false;
-
-        diffuseMap.wrapS = THREE.RepeatWrapping;
-        diffuseMap.wrapT = THREE.RepeatWrapping;
-        diffuseMap.repeat.set(32, 32);
-
-        mat = new THREE.MeshBasicMaterial({ map: diffuseMap });
+      if (color_scheme == null) {
+        if (child.name.startsWith("Bush")) {
+          mat.color = new THREE.Color("hsl(120, 30%, 30%)");
+        } else if (child.name == "coneA") {
+          mat.color = new THREE.Color("hsl(0, 100%, 50%)");
+        } else if (child.name == "coneB") {
+          mat.color = new THREE.Color("hsl(240, 100%, 50%)");
+        }
       } else {
-        mat = new THREE.MeshPhongMaterial({
-          color: new THREE.Color("hsl(0, 0%, 50%)"),
-          shininess: 0,
-        });
-      }
-
-      if (child.name.startsWith("Bush")) {
-        mat.color = new THREE.Color("hsl(120, 30%, 30%)");
-      } else if (child.name == "coneA") {
-        mat.color = new THREE.Color("hsl(0, 100%, 50%)");
-      } else if (child.name == "coneB") {
-        mat.color = new THREE.Color("hsl(240, 100%, 50%)");
+        for (let key of Object.keys(color_scheme)) {
+          if (child.name.startsWith(key)) {
+            mat.color = new THREE.Color(color_scheme[key]);
+          }
+        }
       }
 
       // Preserve original textures if they exist
