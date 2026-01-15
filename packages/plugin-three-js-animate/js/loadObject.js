@@ -67,19 +67,9 @@ export async function loadObject(
         shininess: 0,
       });
 
-      if (color_scheme == null) {
-        if (child.name.startsWith("Bush")) {
-          mat.color = new THREE.Color("hsl(120, 30%, 30%)");
-        } else if (child.name == "coneA") {
-          mat.color = new THREE.Color("hsl(0, 100%, 50%)");
-        } else if (child.name == "coneB") {
-          mat.color = new THREE.Color("hsl(240, 100%, 50%)");
-        }
-      } else {
-        for (let key of Object.keys(color_scheme)) {
-          if (child.name.startsWith(key)) {
-            mat.color = new THREE.Color(color_scheme[key]);
-          }
+      for (let key of Object.keys(color_scheme)) {
+        if (child.name.startsWith(key)) {
+          mat.color = new THREE.Color(color_scheme[key]);
         }
       }
 
@@ -112,6 +102,8 @@ export async function loadObject(
 
     // Get all animation names
     let animation_names = model.animations.map((clip) => clip.name);
+
+    console.log("ANIMATION NAMES: ", animation_names);
 
     // use the following once the loader has loaded the model
     for (var i = 0; i < animation_names.length; ++i) {

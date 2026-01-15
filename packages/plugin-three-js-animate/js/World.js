@@ -200,7 +200,11 @@ export async function World(
       child.path = paths[child.name];
       child.path_m = paths_m[child.name];
 
-      changeAnimation(scene, child.name, "idle");
+      child.idle_anim = array_map.filter((x) => x.name == child.name).map((x) => x.idle)[0];
+      child.walk_anim = array_map.filter((x) => x.name == child.name).map((x) => x.walk)[0];
+      console.log("ANIMATION NAMES: ", child.idle_anim, child.walk_anim);
+
+      changeAnimation(scene, child.name, child.idle_anim);
 
       child.node = 0;
       child.fraction = 0;
@@ -336,7 +340,7 @@ function onReset() {
       child.position.copy(start_pos);
       child.justFinished = true;
 
-      changeAnimation(scene, child.name, "idle");
+      changeAnimation(scene, child.name, child.idle_anim);
     }
   });
   unhighlightAll(scene);
@@ -355,7 +359,7 @@ function advanceCharacter(scene, character, time) {
 
   if (child.path_m.length == child.node + 1) {
     target = child.path_m[child.path_m.length - 1];
-    changeAnimation(scene, child.name, "idle");
+    changeAnimation(scene, child.name, child.idle_anim);
     if (child.name == cc && child.justFinished == true) {
       let arr = scene.userData.array_list[child.node];
       let aactions = getActions(arr, child.path[child.node], actions);
@@ -388,7 +392,7 @@ function advanceCharacter(scene, character, time) {
     }
 
     if (end[0] === start[0] && end[1] === start[1]) {
-      changeAnimation(scene, child.name, "idle");
+      changeAnimation(scene, child.name, child.idle_anim);
     } else {
       moveCharacter(scene, character, target);
     }
@@ -403,7 +407,7 @@ function moveCharacter(scene, character, target) {
     child.lookAt(new_pos);
     child.position.copy(new_pos);
 
-    changeAnimation(scene, character, "walk");
+    changeAnimation(scene, character, child.walk_anim);
   }
 }
 

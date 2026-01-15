@@ -112,10 +112,27 @@ export async function fetchArrays(files) {
   let array_lists = [];
   for (let i = 0; i < files.length; i++) {
     let file = files[i];
-    const response = await fetch(file);
-    const json = await response.json();
-    let array_list = Object.keys(json).map((key) => json[key]["grid_agent"]);
+    let response = await fetch(file);
+    let json = await response.json();
+    let array_list;
+    if (Object.keys(json[0]).includes("grid_with_agents")) {
+      array_list = Object.keys(json).map((key) => json[key]["grid_with_agents"]);
+    } else {
+      array_list = Object.keys(json).map((key) => json[key]["grid_agent"]);
+    }
     array_lists.push(array_list);
   }
   return array_lists;
+}
+
+export async function fetchArray(file) {
+  let response = await fetch(file);
+  let json = await response.json();
+  let array_list;
+  if (Object.keys(json[0]).includes("grid_with_agents")) {
+    array_list = Object.keys(json).map((key) => json[key]["grid_with_agents"]);
+  } else {
+    array_list = Object.keys(json).map((key) => json[key]["grid_agent"]);
+  }
+  return array_list;
 }
