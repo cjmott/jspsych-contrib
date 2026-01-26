@@ -14,8 +14,8 @@
   <script type = "module">
 
     // Import functions
-    import { fetchArrays } from '../js/utils_light.js';
-    import { questionMultiChoice, questionMultiSlider } from '../js/questions.js';
+    import { fetchArrays, makeArray, makeObject } from '../js/utils_light.js';
+    import { questionMultiChoice, questionMultiSlider } from '../js/questions_v2.js';
 
     // Declare variable
 		let interactions = [];
@@ -24,12 +24,19 @@
     let file = "scenarios/trajectory.json"
     let response = await fetch(file);
     let json = await response.json();
-    console.log(json);
+    //console.log(json);
+    let ob = await makeObject(file);
+    console.log(ob);
+
+    let ex = await makeArray(file);
+    console.log(ex);
 
     // Load arrays
-    const files = ["trajectory.json", "negligent.json", "blocker.json", "blocker_2.json",
+    const files = ["trajectory2.json", "negligent.json", "blocker.json", "blocker_2.json",
                 "blocker_blocker.json"].map((x) => "scenarios/" + x);
     let array_lists = await fetchArrays(files);
+    array_lists.unshift(ex);
+
 
     const jsPsych = initJsPsych({
       on_data_update: function(data) {
@@ -39,7 +46,7 @@
 
     const trial1 = {
       type: jsPsychPluginThreeJsAnimate,
-      array_list: array_lists[0],
+      array_list: ob.array_list,
       array_map: [
         {
           number: 1,
@@ -57,7 +64,7 @@
           model_path: "assets/polyman7.glb",
           color_scheme: {
             "Hat": "hsl(120, 30%, 30%)",
-            "Shirt": "hsl(0, 100%, 50%)",
+            "Shirt": "hsl(0, 100%, 50%)", // Red shirt
             "Pants": "hsl(240, 100%, 50%)",
             "FootL": "hsl(240, 100%, 100%)",
             "FootR": "hsl(240, 100%, 100%)",
@@ -70,7 +77,8 @@
             "HandR": 0xffdcb1,
             "Hair": "hsl(22, 51%, 16%)"
           },
-          idle: "breath_idle"
+          idle: "breath_idle",
+          actions: ob.A
         },
         {
           number: 3,
@@ -80,7 +88,7 @@
           color_scheme: {
             "Hat": "hsl(120, 30%, 60%)",
             "Pants": "hsl(0, 100%, 50%)",
-            "Shirt": "hsl(240, 100%, 50%)",
+            "Shirt": "hsl(240, 100%, 50%)", // Blue shirt
             "FootL": "hsl(240, 100%, 100%)",
             "FootR": "hsl(240, 100%, 100%)",
             "Eyes": "hsl(240, 100%, 100%)",
@@ -92,16 +100,12 @@
             "HandR": 0xffdcb1,
             "Hair": "hsl(22, 51%, 16%)"
           },
-          idle: "breath_idle"
+          idle: "breath_idle",
+          actions: ob.B
         }
       ],
       sidewalk_type: "checker",
-      trial_type: "interactive",
-      interaction_info: {
-        control_character: "B",
-        moves: 2
-      },
-      actions: [[1, 0], [0, 1], [0, 0], [-1, 0], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]],
+      trial_type: "observation",
       include_questions: true,
       questions: questionMultiChoice([
         {
@@ -176,6 +180,7 @@
         control_character: "A",
         moves: 1
       },
+      actions: [[1, 0], [0, 1], [0, 0], [-1, 0], [0, -1]],
       include_questions: true,
       questions: questionMultiSlider([
         {

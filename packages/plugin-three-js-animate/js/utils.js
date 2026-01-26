@@ -36,13 +36,14 @@ export function convertPosition(indices, odim, wdim) {
   let bwidth = odim[0];
   let blength = odim[1];
 
-  let ws = [];
-  let ls = [];
+  //let ws = [];
+  //let ls = [];
   let fw, fl;
 
   fw = (bwidth * wdim[0]) / 2 - bwidth / 2;
   fl = (blength * wdim[1]) / 2 - blength / 2;
 
+  /*
   for (let i = 0; i < wdim[0]; i++) {
     ws.push(bwidth * i - fw);
   }
@@ -51,6 +52,9 @@ export function convertPosition(indices, odim, wdim) {
   }
 
   let position = [ws[indices[0]], ls[indices[1]]];
+  */
+
+  let position = [bwidth * indices[0] - fw, blength * indices[1] - fl];
   //console.log("Convert Position: ", position);
   return position;
 }
@@ -107,6 +111,24 @@ export function compareArrays2d(a1, a2) {
   return out;
 }
 
+export function compareArrays1d(arrA, arrB) {
+  return arrA.length === arrB.length && arrA.every((value, index) => value === arrB[index]);
+}
+
+/* Define function to infer move of agent between two arrays */
+export function inferMove(arr1, arr2, a) {
+  let out;
+  if (compareArrays2d(arr1, arr2)) {
+    out = [0, 0];
+  } else {
+    let l1 = indexOf2d(arr1, a);
+    let l2 = indexOf2d(arr2, a);
+
+    out = [l2[0] - l1[0], l2[1] - l1[1]];
+  }
+  return out;
+}
+
 /* Define function to fetch arrays */
 export async function fetchArrays(files) {
   let array_lists = [];
@@ -135,4 +157,89 @@ export async function fetchArray(file) {
     array_list = Object.keys(json).map((key) => json[key]["grid_agent"]);
   }
   return array_list;
+}
+
+/* Functions from World.js */
+// Update array
+export function replaceDeepElement(arr, oldValue, newValue) {
+  let out = [...arr];
+  for (let i = 0; i < out.length; i++) {
+    if (Array.isArray(out[i])) {
+      out[i] = replaceDeepElement(out[i], oldValue, newValue); // Recursively call for nested arrays
+    } else if (out[i] === oldValue) {
+      out[i] = newValue; // Replace the element
+    }
+  }
+  return out;
+}
+
+export function updateArray(arr, new_pos, num) {
+  let out = [...replaceDeepElement(arr, num, 0)];
+  // Add num at new_pos
+  out[new_pos[0]][new_pos[1]] = num;
+
+  return out;
+}
+
+// Shorten array
+export function searchArray2d(arr, list) {
+  let count = 0;
+  for (let i of list) {
+    count += Number(arr.flat().indexOf(i) != -1);
+  }
+
+  return count;
+}
+
+export function shortenArrayList(a) {
+  let out;
+  out = a;
+  if (a.length > 2) {
+    for (let i = a.length - 2; i >= 1; i--) {
+      let last = out[i];
+      let seclast = out[i - 1];
+      if (compareArrays2d(seclast, last)) {
+        out.pop();
+      }
+    }
+  }
+  return out;
+}
+
+export function shortenArrayList2(al, agent_numbers) {
+  let out = al;
+  for (let i = al.length - 1; i >= 0; i--) {
+    let current = out[i];
+    let pop = false;
+    if (searchArray2d(current, agent_numbers) == 0) {
+      pop = true;
+    }
+
+    /*
+    if (i - 1 >= 0) {
+      let next = out[i - 1];
+      if (compareArrays2d(current, next)) {
+        pop = true;
+      }
+    }
+    */
+
+    if (pop) {
+      out.pop();
+    }
+  }
+
+  return out;
+}
+
+export function capAt(n, l) {
+  let out;
+  if (n < l) {
+    out = n;
+  } else if (n < 2 * l) {
+    out = l + (l - n);
+  } else {
+    out = 0;
+  }
+  return out;
 }

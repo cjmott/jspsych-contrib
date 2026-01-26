@@ -4,22 +4,23 @@ export function convertPosition(indices, odim, wdim) {
   let bwidth = odim[0];
   let blength = odim[1];
 
-  let ws = [];
-  let ls = [];
+  //let ws = [];
+  //let ls = [];
   let fw, fl;
 
   fw = (bwidth * wdim[0]) / 2 - bwidth / 2;
   fl = (blength * wdim[1]) / 2 - blength / 2;
-
+  /*
   for (let i = 0; i < wdim[0]; i++) {
     ws.push(bwidth * i - fw);
   }
   for (let j = 0; j < wdim[1]; j++) {
     ls.push(blength * j - fl);
   }
-
-  let position = [ws[indices[0]], ls[indices[1]]];
+  */
+  //let position = [ws[indices[0]], ls[indices[1]]];
   //console.log("Convert Position: ", position);
+  let position = [bwidth * indices[0] - fw, blength * indices[1] - fl];
   return position;
 }
 
@@ -76,19 +77,94 @@ export function compareArrays2d(a1, a2) {
 }
 
 /* Define function to fetch arrays */
+export async function fetchArray(file) {
+  let response = await fetch(file);
+  let json = await response.json();
+  let array_list;
+  if (Object.keys(json[0]).includes("grid_with_agents")) {
+    array_list = Object.keys(json).map((key) => json[key]["grid_with_agents"]);
+  } else {
+    array_list = Object.keys(json).map((key) => json[key]["grid_agent"]);
+  }
+  return array_list;
+}
+
 export async function fetchArrays(files) {
   let array_lists = [];
   for (let i = 0; i < files.length; i++) {
     let file = files[i];
-    let response = await fetch(file);
-    let json = await response.json();
-    let array_list;
-    if (Object.keys(json[0]).includes("grid_with_agents")) {
-      array_list = Object.keys(json).map((key) => json[key]["grid_with_agents"]);
-    } else {
-      array_list = Object.keys(json).map((key) => json[key]["grid_agent"]);
-    }
+    let array_list = await fetchArray(file);
     array_lists.push(array_list);
   }
   return array_lists;
+}
+
+/* Function to construct arrays from grid and allocentric move vector */
+export async function makeArray(file) {
+  let response = await fetch(file);
+  let json = await response.json();
+  let array = json.grid;
+  let array_list = [];
+  let agents = Object.keys(json.allocentric_move_vectors);
+  agents.sort(); // alphabetical sort
+
+  for (let i = 0; i < json.trajectory.length; i++) {
+    let temp = structuredClone(array);
+    for (let j = 0; j < agents.length; j++) {
+      let ag = agents[j];
+      let ag_loc = json.positions[ag][i];
+      temp[ag_loc[0]][ag_loc[1]] = j + 2;
+    }
+    array_list.push(temp);
+  }
+
+  return array_list;
+}
+
+export async function makeArrays(files) {
+  let array_lists = [];
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let array_list = await makeArray(file);
+    array_lists.push(array_list);
+  }
+  return array_lists;
+}
+
+/* Function to construct objects from grid and allocentric move vector */
+export async function makeObject(file) {
+  let response = await fetch(file);
+  let json = await response.json();
+  let array = json.grid;
+  let array_list = [];
+  let agents = Object.keys(json.allocentric_move_vectors);
+  agents.sort(); // alphabetical sort
+
+  for (let i = 0; i < json.trajectory.length; i++) {
+    let temp = structuredClone(array);
+    for (let j = 0; j < agents.length; j++) {
+      let ag = agents[j];
+      let ag_loc = json.positions[ag][i];
+      temp[ag_loc[0]][ag_loc[1]] = j + 2;
+    }
+    array_list.push(temp);
+  }
+
+  let out = { array_list: array_list };
+  for (let j = 0; j < agents.length; j++) {
+    let ag = agents[j];
+    out[ag] = json.allocentric_move_vectors[ag];
+  }
+
+  return out;
+}
+
+export async function makeObjects(files) {
+  let out = [];
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
+    let obj = await makeObject(file);
+    out.push(obj);
+  }
+  return out;
 }

@@ -63,6 +63,11 @@ const info = <const>{
           type: ParameterType.STRING,
           default: "walk",
         },
+        actions: {
+          type: ParameterType.COMPLEX,
+          array: true,
+          default: [undefined],
+        },
       },
     },
     /* Color (in RGB) for sidewalk or path to texture */
