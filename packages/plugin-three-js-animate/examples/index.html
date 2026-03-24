@@ -15,7 +15,7 @@
 
     // Import functions
     import { fetchArrays, makeArray, makeObject } from '../js/utils_light.js';
-    import { questionMultiChoice, questionMultiSlider } from '../js/questions_v2.js';
+    import { questionMultiChoice, questionMultiSlider } from '../js/questions.js';
 
     // Declare variable
 		let interactions = [];
@@ -113,7 +113,7 @@
           prompt: "How much does Person A care about other people?",
           options: ["Not at all", "A medium amount", "A lot"],
           requested: true,
-          horizontal: true // DOES NOT WORK
+          horizontal: true
         }
       ])
     };

@@ -1,5 +1,5 @@
 // Functions for different questions types
-// TO DO: LIKERT, FREE RESPONSE
+// TO DO: FREE RESPONSE
 
 export function questionMultiChoice(questions, randomize_question_order = false) {
   let out = {};
