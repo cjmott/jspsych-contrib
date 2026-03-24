@@ -347,7 +347,7 @@ export function questionMultiSlider(questions, randomize_question_order = false)
 
   // Create CSS
   let css = ``;
-  out["css"] - css;
+  out["css"] = css;
 
   // Create HTML
   let html = ``;
