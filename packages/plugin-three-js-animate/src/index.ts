@@ -1,6 +1,6 @@
 import { JsPsych, JsPsychPlugin, ParameterType, TrialType } from "jspsych";
 
-import { World, endWorld } from "../js/World.js";
+import { World, checkWorld, endWorld } from "../js/World.js";
 import { version } from "../package.json";
 
 const info = <const>{
@@ -120,6 +120,12 @@ const info = <const>{
     camera_controls: {
       type: ParameterType.BOOL,
       default: true,
+    },
+    /** Array that defines the location of the camera to start */
+    camera_position: {
+      type: ParameterType.INT,
+      array: true,
+      default: [0, 10, 40],
     },
     /** Array that defines the size of the canvas element in pixels. First value is height, second value is width. */
     canvas_size: {
@@ -273,6 +279,7 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
       trial.actions,
       trial.animation_controls,
       trial.camera_controls,
+      trial.camera_position,
       c
     );
 
@@ -301,7 +308,11 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
         Object.assign(question_data, obje);
       }
 
-      if (missing_required > 0) {
+      let played = checkWorld();
+
+      if (!played) {
+        alert(`Please play the entire animation before continuing.`);
+      } else if (missing_required > 0) {
         alert(
           `There are ` +
             missing_required +
@@ -318,13 +329,13 @@ class ThreeJsAnimatePlugin implements JsPsychPlugin<Info> {
         submits = 1;
       } else {
         // End world
-        let response_inter = endWorld();
-        console.log("END WORLD: ", response_inter);
+        let out = endWorld();
+        console.log("END WORLD: ", out);
 
         // Store interactive
         if (trial.trial_type == "interactive") {
           let obje = {};
-          obje["QInt"] = response_inter;
+          obje["QInt"] = out;
           Object.assign(question_data, obje);
         }
 

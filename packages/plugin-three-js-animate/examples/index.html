@@ -3,10 +3,12 @@
   <head>
     <title>jsPsychPluginThreeJSAnimate Example</title>
     <script src="https://unpkg.com/jspsych"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-canvas-keyboard-response@2.1.0"></script>
     <!-- Once this plugin package is published, it can be loaded via
 <script src="https://unpkg.com/@jspsych-contrib/plugin-three-js-animate"></script>
 <script src="../dist/index.browser.js"></script> -->
     <script src="../dist/index.browser.js"></script>
+    <script src="../../../../three-utilities/functions/showCharacter/dist/index.browser.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/jspsych/css/jspsych.css" />
   </head>
 
@@ -37,16 +39,50 @@
     let array_lists = await fetchArrays(files);
     array_lists.unshift(ex);
 
-
     const jsPsych = initJsPsych({
       on_data_update: function(data) {
         console.log('Just added new data. The contents of the data are: ' + JSON.stringify(data));
       }
     });
 
+    // Trials
+    const sc = showCharacterClass;
+    const trial0 = {
+				type: jsPsychCanvasKeyboardResponse,
+				stimulus: function(c) {
+					sc.showCharacter(c,
+            "assets/polyman7.glb",
+            {
+            "Hat": "hsl(120, 30%, 30%)",
+            "Shirt": "hsl(0, 100%, 50%)", // Red shirt
+            "Pants": "hsl(240, 100%, 50%)",
+            "FootL": "hsl(240, 100%, 100%)",
+            "FootR": "hsl(240, 100%, 100%)",
+            "Eyes": "hsl(240, 100%, 100%)",
+            "Irises": "hsl(196, 66%, 70%)",
+            "Pupils": "hsl(240, 0%, 0%)",
+            "Head": 0xffdcb1,
+            "Mouth": 0xffdcb1,
+            "HandL": 0xffdcb1,
+            "HandR": 0xffdcb1,
+            "Hair": "hsl(22, 51%, 16%)"
+          },
+          "breath_idle",
+          [0, 4, 10],
+          [0, 2, 0]
+          )
+				},
+				choices: [" ", "Spacebar"],
+				canvas_size: [250, 350],
+				prompt: `<p>Please press the spacebar to proceed to the first trial.</p>`,
+			};
+
     const trial1 = {
       type: jsPsychPluginThreeJsAnimate,
       array_list: ob.array_list,
+      camera_controls: false,
+      camera_position: [0, 15, 15],
+      canvas_size: [250, 300],
       array_map: [
         {
           number: 1,
@@ -120,6 +156,9 @@
 
     const trial2 = {
       type: jsPsychPluginThreeJsAnimate,
+      camera_controls: false,
+      camera_position: [0, 15, 15],
+      canvas_size: [250, 300],
       array_list: array_lists[1],
       array_map: [
         {
@@ -192,10 +231,11 @@
           max: 5,
           step: 0.1,
           start: 0,
+          slider_width: 500,
         }
       ])
     };
 
-    jsPsych.run([trial1, trial2])
+    jsPsych.run([trial0, trial1, trial2])
   </script>
 </html>

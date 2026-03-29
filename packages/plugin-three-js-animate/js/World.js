@@ -22,14 +22,16 @@ let mixers;
 let animationId;
 let isPlaying, isMoving;
 let timeDelta, clock;
-let mouse, raycaster, hoveredButton, mousePos, interactions;
+let mouse, raycaster, hoveredButton, mousePos, out;
 let destinations = [];
 let actions;
 let pastObject = null;
 let response_inter;
-let speed = 2;
+let speed = 1.5;
+let t, tleft;
+let played;
 
-// Button definitions
+// For buttons
 let overlayCanvas = document.createElement("canvas");
 let overlayCtx = overlayCanvas.getContext("2d");
 
@@ -41,7 +43,7 @@ const buttons = [
     height: 40,
     text: () => (isPlaying ? "⏸️" : "▶️"),
     action: onPlay,
-    color: "#90EE90",
+    color: "#ADD8E6",
   },
   {
     x: 40,
@@ -61,25 +63,29 @@ export async function World(
   trial_type,
   interaction_info,
   actions_list,
-  animation_controls = "all",
-  camera_controls = true,
-  c
+  animation_controls,
+  camera_controls,
+  camera_position,
+  c,
+  pad_ends = true
 ) {
   // Initialize
   clock = new THREE.Clock();
+  t = 0;
+  tleft = pad_ends ? 25 : 20;
   mixers = {};
-  isPlaying = true;
+  isPlaying = false;
   isMoving = false;
+  played = false;
 
   raycaster = new THREE.Raycaster();
   mouse = new THREE.Vector2();
 
-  interactions = [];
+  out = [];
   actions = actions_list;
   console.log(actions);
 
   // Buttons
-  //const overlayCanvas = document.createElement("canvas");
   overlayCanvas.style.position = c.style.position;
   overlayCanvas.style.top = c.style.top;
   overlayCanvas.style.left = c.style.left;
@@ -122,7 +128,9 @@ export async function World(
 
   // Camera
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 10, 20);
+  camera.position.set(camera_position[0], camera_position[1], camera_position[2]);
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  console.log("CAMERA:", camera);
   scene.userData.camera = camera;
 
   /* light
@@ -159,7 +167,7 @@ export async function World(
 
   // Load scene
   let initial = array_list[0];
-  await loadScene(scene, array_map, initial, mixers, odim, dim);
+  await loadScene(scene, array_map, initial, mixers, odim, dim, pad_ends);
 
   //console.log("SCENE: ", scene);
   //console.log("MIXERS: ", mixers);
@@ -170,10 +178,18 @@ export async function World(
   let paths = {};
   let paths_m = {};
   let moves_inf = {};
+  let moves_in = {};
+  let blocked = {};
+  let addstart = {};
+  let addend = {};
+  let goals = {};
 
   // Reduce array list
   let al = shortenArrayList2(array_list, agents);
+
   console.log("AL: ", al);
+  console.log("AL LENGTH: ", al.length);
+  console.log("ARRAY LIST LENGTH: ", array_list.length);
 
   // Create paths
   for (let i = 0; i < agents.length; i++) {
@@ -182,6 +198,14 @@ export async function World(
     paths[n] = [];
     paths_m[n] = [];
     moves_inf[n] = [];
+    moves_in[n] = [];
+    blocked[n] = [];
+    let copy = false;
+
+    actions = array_map.filter((x) => x.name == n).map((x) => x.actions)[0];
+    if (actions.includes(undefined)) {
+      copy = true;
+    }
 
     for (let j = 0; j < al.length; j++) {
       let arr = al[j];
@@ -193,18 +217,137 @@ export async function World(
 
       paths[n].push(next);
 
+      // On first step determine goal
+      if (j == 0) {
+        let start = paths[n][0];
+        if (start[1] == 0) {
+          goals[n] = dim[1] - 1;
+        } else if (start[1] == dim[1] - 1) {
+          goals[n] = 0;
+        } else {
+          goals[n] = null;
+        }
+      }
+
       let next_arr;
       if (j < al.length - 1) {
         next_arr = al[j + 1];
-      } else {
-        next_arr = al[j];
+        let move_inf = inferMove(arr, next_arr, a);
+
+        let move_in = [0, 0];
+        if (copy) {
+          move_in = move_inf;
+        } else if (goals[n] == dim[1] - 1) {
+          move_in = actions[j];
+        } else {
+          let action = actions[j];
+          if (action[0] != 0) {
+            move_in[0] = -1 * action[0];
+          }
+          if (action[1] != 0) {
+            move_in[1] = -1 * action[1];
+          }
+        }
+
+        moves_inf[n].push(move_inf);
+        moves_in[n].push(move_in);
+        blocked[n].push(move_inf[0] != move_in[0] || move_inf[1] != move_in[1]);
       }
-
-      let move = inferMove(arr, next_arr, a);
-      moves_inf[n].push(move);
     }
+    // Add padding at beginning and end
+    scene.userData.pad_ends = pad_ends;
+    addstart[n] = [];
+    addend[n] = [];
+    if (pad_ends) {
+      let start = paths[n][0];
+      let end = paths[n][paths[n].length - 1];
+      let goaly;
 
-    paths_m[n] = paths[n].map((node) => convertPosition(node, odim, dim));
+      if (start[1] == 0) {
+        addstart[n] = [
+          [0, 1],
+          [0, 1],
+          [0, 1],
+          [0, 1],
+          [0, 1],
+        ];
+        paths[n] = [
+          ...[
+            [start[0], -5],
+            [start[0], -4],
+            [start[0], -3],
+            [start[0], -2],
+            [start[0], -1],
+          ],
+          ...paths[n],
+        ];
+        goaly = dim[1] - 1;
+
+        if (end[1] == goaly) {
+          addend[n] = [
+            [0, 1],
+            [0, 1],
+            [0, 1],
+            [0, 1],
+            [0, 1],
+          ];
+          paths[n] = [
+            ...paths[n],
+            ...[
+              [end[0], 1 + end[1]],
+              [end[0], 2 + end[1]],
+              [end[0], 3 + end[1]],
+              [end[0], 4 + end[1]],
+              [end[0], 5 + end[1]],
+            ],
+          ];
+        }
+      } else if (start[1] == dim[1] - 1) {
+        addstart[n] = [
+          [0, -1],
+          [0, -1],
+          [0, -1],
+          [0, -1],
+          [0, -1],
+        ];
+        paths[n] = [
+          ...[
+            [start[0], start[1] + 5],
+            [start[0], start[1] + 4],
+            [start[0], start[1] + 3],
+            [start[0], start[1] + 2],
+            [start[0], start[1] + 1],
+          ],
+          ...paths[n],
+        ];
+        goaly = 0;
+        if (end[1] == goaly) {
+          addend[n] = [
+            [0, -1],
+            [0, -1],
+            [0, -1],
+            [0, -1],
+            [0, -1],
+          ];
+          paths[n] = [
+            ...paths[n],
+            ...[
+              [end[0], -1],
+              [end[0], -2],
+              [end[0], -3],
+              [end[0], -4],
+              [end[0], -5],
+            ],
+          ];
+        }
+      } else {
+        goaly = null;
+      }
+    }
+    // Convert grid coordinates to real coordinates
+    paths_m[n] = paths[n].map((pos) => convertPosition(pos, odim, dim));
+
+    console.log("PATHS: ", paths[n], paths_m[n]);
   }
 
   //console.log("PATHS_M: ", paths_m);
@@ -231,26 +374,37 @@ export async function World(
       child.node = 0;
       child.fraction = 0;
       child.justFinished = true;
+      child.goal = goals[child.name];
 
-      let moves_in = array_map.filter((x) => x.name == child.name).map((x) => x.actions)[0];
-      if (moves_in.includes(undefined)) {
-        moves_in = moves_inf[child.name];
-      }
-      child.moves_in = moves_in;
-      child.moves_inf = moves_inf[child.name];
+      child.moves_in = [...addstart[child.name], ...moves_in[child.name], ...addend[child.name]];
+      child.moves_inf = [...addstart[child.name], ...moves_inf[child.name], ...addend[child.name]];
 
+      let fsarray = Array.from({ length: addstart[child.name].length }, () => false);
+      let fearray = Array.from({ length: addend[child.name].length }, () => false);
+      child.blocked = [...fsarray, ...blocked[child.name], ...fearray];
+
+      console.log("CHILD PATH: ", child.path);
       console.log("CHILD MOVES INPUT: ", child.moves_in);
       console.log("CHILD MOVES INFERRED: ", child.moves_inf);
+      console.log("BLOCKED: ", child.blocked);
     }
   });
 
   render();
 
+  /*
   setTimeout(() => {
     // Code to be executed after 1000ms
     isPlaying = false;
-  }, 50);
+  }, 5);
+  */
 
+  addButtons();
+  onPlay();
+}
+
+// CREATE BUTTON OVERLAY
+function addButtons() {
   // Button interaction state
   hoveredButton = null;
   mousePos = { x: 0, y: 0 };
@@ -335,6 +489,42 @@ function drawButtons(canvas, canvas_2d) {
     let textY = button.y + button.height / 2;
     canvas_2d.fillText(button.text(), textX, textY);
   });
+
+  // Timer
+  // Paramters for content
+  let x = 120;
+  let y = 0;
+  let width = 160;
+  let height = 40;
+  const text = () => "Time left: " + tleft;
+  let color = "#008450";
+
+  // Button background
+  canvas_2d.fillStyle = color;
+  canvas_2d.globalAlpha = 1;
+
+  // Rounded rectangle
+  let radius = 8;
+  canvas_2d.beginPath();
+  canvas_2d.roundRect(x, y, width, height, radius);
+  canvas_2d.fill();
+
+  // Button border (when hovered)
+  if (tleft < 10) {
+    canvas_2d.fillStyle = "#CC3232";
+    canvas_2d.fill();
+  }
+
+  // Button text
+  canvas_2d.globalAlpha = 1;
+  canvas_2d.fillStyle = "#000000";
+  canvas_2d.font = "16px Arial";
+  canvas_2d.textAlign = "center";
+  canvas_2d.textBaseline = "middle";
+
+  let textX = x + width / 2;
+  let textY = y + height / 2;
+  canvas_2d.fillText(text(), textX, textY);
 }
 
 // Check if point is inside button
@@ -344,6 +534,7 @@ function isPointInButton(x, y, button) {
   );
 }
 
+// Button functions
 function onPlay() {
   if (isPlaying == false || isMoving == false) {
     clock.getDelta();
@@ -366,6 +557,11 @@ function onReset() {
     if (names.includes(child.name)) {
       child.path_m = child.path.map((node) => convertPosition(node, odim, dim));
       child.node = 0;
+      t = 0;
+      console.log("TIME LEFT: ", tleft);
+      tleft = scene.userData.pad_ends ? 25 : 20;
+      console.log("TIME LEFT: ", tleft);
+      drawButtons(overlayCanvas, overlayCtx);
       let position = child.path_m[child.node];
 
       let start_pos = new THREE.Vector3(position[0], 0.2, position[1]);
@@ -377,11 +573,14 @@ function onReset() {
   });
   unhighlightAll(scene);
   isMoving = false;
-  isPlaying = true;
+  isPlaying = false;
+  onPlay();
+  /*
   setTimeout(() => {
     // Code to be executed after 1000ms
     isPlaying = false;
-  }, 50);
+  }, 10);
+  */
 }
 
 function advanceCharacter(scene, character, time) {
@@ -390,16 +589,21 @@ function advanceCharacter(scene, character, time) {
   let start, end, target;
 
   /* If character has reached end of path, just keep copying current node */
-  if (child.path_m.length == child.node + 1) {
+  if (child.path_m.length <= child.node + 1) {
+    // At end of path, look sad
     target = child.path_m[child.path_m.length - 1];
-    changeAnimation(scene, child.name, child.idle_anim);
+
+    if (child.goal > 0 && target[1] >= child.goal) {
+      changeAnimation(scene, child.name, child.idle_anim);
+    } else if (child.goal <= 0 && target[1] <= child.goal) {
+      changeAnimation(scene, child.name, child.idle_anim);
+    } else {
+      changeAnimation(scene, child.name, "sad");
+    }
 
     //console.log("CHILD NAME: ", child.name);
     let ot;
-    if (child.name == "A") {
-      ot = findOrient(child, dim);
-      orientToAction(child, ot);
-    } else if (child.name == "B") {
+    if (["A", "B"].includes(child.name)) {
       ot = findOrient(child, dim);
       orientToAction(child, ot);
     }
@@ -421,61 +625,58 @@ function advanceCharacter(scene, character, time) {
       child.fraction = 1;
     }
 
-    // Start is current node location; end is next node
-    start = child.path_m[child.node];
-    end = child.path_m[child.node + 1];
-
     // If blocked, fraction function caps at set point, then decreases to 0 and stops
-    let cap = 0.5; // Character disappears if lower than 0.5
-    let blocked =
-      child.moves_in[child.node][0] != child.moves_inf[child.node][0] ||
-      child.moves_in[child.node][1] != child.moves_inf[child.node][1];
+    let cap = 0.3; // Character disappears if lower than 0.5
+    let blocked = child.blocked[child.node];
 
     if (blocked) {
       console.log("BLOCKED! ", child.name, child.moves_in[child.node], child.moves_inf[child.node]);
-      start = child.path_m[child.node];
-      let pmove;
-      if (child.fraction < 0.5) {
-        pmove = [
-          child.path[child.node][0] + cap * 2 * child.moves_in[child.node][0],
-          child.path[child.node][1] + cap * 2 * child.moves_in[child.node][1],
-        ];
-        end = convertPosition(pmove, odim, dim);
-      } else {
-        pmove = [
-          child.path[child.node][0] + cap * 2 * child.moves_in[child.node][0],
-          child.path[child.node][1] + cap * 2 * child.moves_in[child.node][1],
-        ];
-        start = convertPosition(pmove, odim, dim);
-        orient = false;
-      }
     }
 
-    // Target of current advance is faction of distance
-    target = [
-      start[0] + child.fraction * (end[0] - start[0]),
-      start[1] + child.fraction * (end[1] - start[1]),
-    ];
-
-    //console.log(start, end, target)
+    if (blocked) {
+      start = child.path[child.node];
+      let pmove = child.moves_in[child.node];
+      let amove;
+      console.log("FRACTION: ", child.fraction);
+      console.log("PLANNED MOVE: ", pmove);
+      if (child.fraction < cap) {
+        amove = [child.fraction * pmove[0], child.fraction * pmove[1]];
+      } else if (child.fraction >= cap && child.fraction <= 1 - cap) {
+        amove = [cap * pmove[0], cap * pmove[1]];
+      } else if (child.fraction > 1 - cap) {
+        amove = [(1 - child.fraction) * pmove[0], (1 - child.fraction) * pmove[1]];
+        orient = false;
+      }
+      console.log("ACTUAL MOVE: ", amove);
+      end = [start[0] + amove[0], start[1] + amove[1]];
+      console.log("ACTUAL END: ", end);
+      target = convertPosition(end, odim, dim);
+      console.log("TARGET: ", target);
+    } else {
+      // Start is current node location; end is next node
+      start = child.path_m[child.node];
+      end = child.path_m[child.node + 1];
+      // Target of current advance is faction of distance
+      target = [
+        start[0] + child.fraction * (end[0] - start[0]),
+        start[1] + child.fraction * (end[1] - start[1]),
+      ];
+    }
 
     if (child.fraction >= 1) {
       child.node++;
       child.fraction = 0;
-
-      // Orient to nearby character
-      //orientToOther(scene, child);
 
       if (scene.userData.total_moves > scene.userData.moves) {
         child.justFinished = true;
       }
     }
 
-    if (end[0] === start[0] && end[1] === start[1]) {
-      changeAnimation(scene, child.name, child.idle_anim);
-
+    if (end[0] === start[0] && end[1] === start[1] && !blocked) {
       // Orient to nearby character
       orientToOther(scene, child);
+      // Become idle
+      changeAnimation(scene, child.name, child.idle_anim);
     } else {
       moveCharacter(scene, character, target, orient);
     }
@@ -505,9 +706,9 @@ function changeAnimation(scene, object, animation) {
 function findOrient(child, dim) {
   let start = child.path[0];
   let out;
-  if (start[1] == 0) {
+  if (start[1] <= 0) {
     out = [0, 1];
-  } else if (start[1] == dim[1] - 1) {
+  } else if (start[1] >= dim[1] - 1) {
     out = [0, -1];
   }
   return out;
@@ -526,7 +727,13 @@ function orientToAction(child, action) {
 
 // Orient to other
 function orientToOther(scene, child, env_list = [0, 1]) {
-  let arr = scene.userData.array_list[child.node];
+  let arr;
+  let node = scene.userData.pad_ends ? child.node - 5 : child.node;
+  if (node > scene.userData.array_list.length) {
+    node = scene.userData.array_list.length;
+  } else {
+    arr = scene.userData.array_list[node];
+  }
   let position = child.path[child.node];
   let cc_num = arr[position[0]][position[1]];
   let acts = [
@@ -668,7 +875,7 @@ function inClick() {
         parseInt(object.name.substring(10, 11)),
       ];
       child.path.push(new_pos);
-      interactions.push(new_pos);
+      out.push(new_pos);
 
       let cc_num = scene.userData.agent_numbers[scene.userData.names.indexOf(cc)];
       let last_arr = [...scene.userData.array_list][scene.userData.array_list.length - 1];
@@ -716,9 +923,27 @@ function render() {
       //console.log("isMoving");
 
       let names = scene.userData.names;
+      let incTime = true;
 
       for (let name of names) {
         advanceCharacter(scene, name, timeDelta);
+        let child = Array.from(scene.children).filter((child) => child.name === name)[0];
+
+        if (child.node <= t) {
+          incTime = false;
+          if (child.node >= child.path.length - 1) {
+            played = true;
+          }
+        }
+      }
+
+      if (incTime) {
+        t++;
+        tleft--;
+        drawButtons(overlayCanvas, overlayCtx);
+        if (tleft <= 0) {
+          played = true;
+        }
       }
     } else {
       //console.log("Not moving");
@@ -741,6 +966,10 @@ export function endWorld() {
   overlayCtx = overlayCanvas.getContext("2d");
 
   // Return
-  response_inter = JSON.stringify(interactions);
+  response_inter = JSON.stringify(out);
   return response_inter;
+}
+
+export function checkWorld() {
+  return played;
 }
